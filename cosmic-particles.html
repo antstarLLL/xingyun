@@ -3,842 +3,1447 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cosmic Particle Ecosystem</title>
+<title>Cosmic Particle Portfolio</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@200;300;400;500&display=swap');
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  body {
-    overflow: hidden;
-    background: #000;
-    font-family: 'Rajdhani', sans-serif;
-    color: #fff;
-    cursor: crosshair;
+  :root{
+    --bg:#030712;
+    --panel:rgba(9,14,26,.46);
+    --line:rgba(0,240,255,.16);
+    --cyan:#00f0ff;
+    --violet:#4a00e0;
+    --magenta:#ff007f;
+    --gold:#ffaa00;
+    --white:rgba(255,255,255,.84);
+    --muted:rgba(255,255,255,.34);
   }
 
-  canvas { display: block; }
-
-  #ui-overlay {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    pointer-events: none;
-    z-index: 10;
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{width:100%;height:100%}
+  body{
+    overflow:hidden;
+    background:radial-gradient(circle at 50% 45%,#07111f 0%,#040812 38%,#02050a 100%);
+    font-family:'Inter',sans-serif;
+    color:#fff;
+    cursor:crosshair;
+    -webkit-font-smoothing:antialiased;
   }
 
-  .state-info {
-    position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    text-align: center;
-    opacity: 0;
-    transition: opacity 0.8s cubic-bezier(0.23, 1, 0.32, 1);
-    pointer-events: none;
+  canvas{display:block}
+
+  .loader{
+    position:fixed;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    z-index:100;
+    background:#030712;
+    transition:opacity 1.2s ease;
+  }
+  .loader.done{opacity:0;pointer-events:none}
+  .loader span{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:.55rem;
+    letter-spacing:.55em;
+    color:rgba(0,240,255,.45);
+  }
+  .bar{width:160px;height:1px;background:rgba(255,255,255,.06);margin-top:1.3rem;overflow:hidden}
+  .bar-inner{width:0;height:100%;background:linear-gradient(90deg,var(--cyan),var(--violet),var(--gold));transition:width .25s}
+
+  .overlay{
+    position:fixed;
+    inset:0;
+    z-index:10;
+    pointer-events:none;
   }
 
-  .state-info.active { opacity: 1; }
-
-  .state-info h1 {
-    font-family: 'Orbitron', sans-serif;
-    font-size: clamp(2rem, 6vw, 5rem);
-    font-weight: 900;
-    letter-spacing: 0.3em;
-    text-transform: uppercase;
-    background: linear-gradient(135deg, #00d4ff, #7b2dff, #ff2d95);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    text-shadow: 0 0 80px rgba(123, 45, 255, 0.5);
-    animation: glowPulse 3s ease-in-out infinite;
+  .grid{
+    position:absolute;
+    inset:0;
+    background:
+      linear-gradient(rgba(255,255,255,.028) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(255,255,255,.028) 1px,transparent 1px);
+    background-size:8vw 8vw;
+    mask-image:radial-gradient(circle at center,rgba(0,0,0,1) 28%,rgba(0,0,0,.55) 70%,transparent 100%);
+    opacity:.42;
   }
 
-  .state-info .subtitle {
-    font-family: 'Rajdhani', sans-serif;
-    font-size: clamp(0.8rem, 2vw, 1.4rem);
-    font-weight: 300;
-    letter-spacing: 0.5em;
-    color: rgba(255, 255, 255, 0.6);
-    margin-top: 0.5em;
-    text-transform: uppercase;
+  .scanlines{
+    position:absolute;
+    inset:0;
+    background:linear-gradient(180deg,transparent 0%,rgba(255,255,255,.015) 50%,transparent 100%);
+    background-size:100% 5px;
+    opacity:.4;
+    mix-blend-mode:screen;
   }
 
-  .state-info .divider {
-    width: 80px;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, #7b2dff, transparent);
-    margin: 1em auto;
+  .bracket{
+    position:fixed;
+    width:44px;
+    height:44px;
+    border-color:var(--line);
+    z-index:12;
+    pointer-events:none;
+  }
+  .bracket.tl{top:24px;left:24px;border-top:1px solid;border-left:1px solid}
+  .bracket.tr{top:24px;right:24px;border-top:1px solid;border-right:1px solid}
+  .bracket.bl{bottom:24px;left:24px;border-bottom:1px solid;border-left:1px solid}
+  .bracket.br{bottom:24px;right:24px;border-bottom:1px solid;border-right:1px solid}
+
+  .panel{
+    position:fixed;
+    padding:14px 16px;
+    border:1px solid rgba(255,255,255,.06);
+    background:linear-gradient(180deg,rgba(10,16,28,.65),rgba(7,12,21,.28));
+    backdrop-filter:blur(10px);
+    font-family:'Space Grotesk',sans-serif;
+    text-transform:uppercase;
+    letter-spacing:.28em;
+    font-size:.48rem;
+    color:rgba(255,255,255,.36);
+    pointer-events:none;
   }
 
-  @keyframes glowPulse {
-    0%, 100% { filter: brightness(1); }
-    50% { filter: brightness(1.3); }
+  .panel .value{
+    display:inline-block;
+    margin-left:.7rem;
+    color:rgba(0,240,255,.78);
+    letter-spacing:.18em;
   }
 
-  .state-nav {
-    position: fixed;
-    right: 2rem;
-    top: 50%;
-    transform: translateY(-50%);
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-    z-index: 20;
-    pointer-events: all;
+  .telemetry-left{top:26px;left:72px;min-width:260px}
+  .telemetry-right{top:26px;right:72px;min-width:260px;text-align:right}
+  .telemetry-right div{display:flex;justify-content:space-between;gap:16px}
+  .telemetry-left div,
+  .telemetry-right div{margin:.38rem 0}
+
+  .status-bar{
+    position:fixed;
+    left:50%;
+    bottom:28px;
+    transform:translateX(-50%);
+    display:flex;
+    gap:30px;
+    align-items:center;
+    z-index:14;
+    padding:10px 18px;
+    border:1px solid rgba(255,255,255,.06);
+    background:rgba(9,14,26,.35);
+    backdrop-filter:blur(10px);
+    font-family:'Space Grotesk',sans-serif;
+    font-size:.48rem;
+    letter-spacing:.3em;
+    color:rgba(255,255,255,.24);
+    pointer-events:none;
+  }
+  .status-bar .value{color:rgba(0,240,255,.74)}
+
+  .scene-label{
+    position:absolute;
+    left:7.5%;
+    bottom:14%;
+    opacity:0;
+    transform:translateY(24px);
+    max-width:480px;
+  }
+  .scene-label .eyebrow{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:.6rem;
+    font-weight:500;
+    letter-spacing:.46em;
+    text-transform:uppercase;
+    color:rgba(0,240,255,.5);
+    margin-bottom:.55rem;
+  }
+  .scene-label h1{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:clamp(2rem,5vw,5rem);
+    font-weight:700;
+    line-height:1;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    background:linear-gradient(135deg,var(--cyan) 0%,var(--violet) 45%,var(--magenta) 75%,var(--gold) 100%);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+    background-clip:text;
+    min-height:1em;
+  }
+  .scene-label .line{
+    width:72px;
+    height:1px;
+    margin:.9rem 0;
+    background:linear-gradient(90deg,var(--cyan),transparent);
+  }
+  .scene-label .desc{
+    max-width:420px;
+    font-size:.8rem;
+    font-weight:300;
+    line-height:1.7;
+    letter-spacing:.12em;
+    color:rgba(255,255,255,.34);
   }
 
-  .nav-dot {
-    width: 12px; height: 12px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    cursor: pointer;
-    transition: all 0.4s ease;
-    position: relative;
+  .nav-pills{
+    position:fixed;
+    top:50%;
+    right:34px;
+    transform:translateY(-50%);
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+    z-index:20;
+    pointer-events:auto;
+  }
+  .pill{
+    width:4px;
+    height:24px;
+    border-radius:999px;
+    background:rgba(255,255,255,.12);
+    position:relative;
+    cursor:pointer;
+    transition:all .55s cubic-bezier(.23,1,.32,1);
+  }
+  .pill::after{
+    content:attr(data-label);
+    position:absolute;
+    right:18px;
+    top:50%;
+    transform:translateY(-50%) translateX(7px);
+    font-family:'Space Grotesk',sans-serif;
+    font-size:.5rem;
+    letter-spacing:.3em;
+    color:rgba(255,255,255,.42);
+    opacity:0;
+    transition:all .35s ease;
+    white-space:nowrap;
+  }
+  .pill:hover,.pill.active{
+    background:var(--cyan);
+    box-shadow:0 0 16px rgba(0,240,255,.4);
+    height:34px;
+  }
+  .pill:hover::after,.pill.active::after{
+    opacity:1;
+    transform:translateY(-50%) translateX(0);
   }
 
-  .nav-dot:hover {
-    background: rgba(123, 45, 255, 0.8);
-    transform: scale(1.3);
+  .audio-button{
+    position:fixed;
+    right:34px;
+    bottom:32px;
+    z-index:24;
+    pointer-events:auto;
+    border:1px solid rgba(255,255,255,.1);
+    background:rgba(7,12,21,.55);
+    color:rgba(255,255,255,.82);
+    font-family:'Space Grotesk',sans-serif;
+    letter-spacing:.26em;
+    text-transform:uppercase;
+    font-size:.55rem;
+    padding:11px 14px;
+    cursor:pointer;
+    backdrop-filter:blur(10px);
+  }
+  .audio-button.active{
+    border-color:rgba(0,240,255,.28);
+    color:var(--cyan);
   }
 
-  .nav-dot.active {
-    background: #7b2dff;
-    box-shadow: 0 0 20px rgba(123, 45, 255, 0.8), 0 0 40px rgba(123, 45, 255, 0.4);
-    transform: scale(1.2);
+  .hint{
+    position:fixed;
+    left:34px;
+    bottom:34px;
+    z-index:18;
+    pointer-events:none;
+    font-family:'Space Grotesk',sans-serif;
+    font-size:.5rem;
+    letter-spacing:.28em;
+    text-transform:uppercase;
+    color:rgba(255,255,255,.24);
   }
 
-  .nav-dot .label {
-    position: absolute;
-    right: 24px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-family: 'Orbitron', sans-serif;
-    font-size: 0.65rem;
-    letter-spacing: 0.2em;
-    white-space: nowrap;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    color: rgba(255, 255, 255, 0.8);
+  @media (max-width:900px){
+    .telemetry-right,.telemetry-left{display:none}
+    .scene-label{left:24px;right:24px;bottom:96px}
+    .nav-pills{right:18px}
+    .status-bar{gap:16px;bottom:18px}
+    .audio-button{right:18px;bottom:74px}
+    .hint{left:18px;bottom:18px}
   }
-
-  .nav-dot:hover .label,
-  .nav-dot.active .label { opacity: 1; }
-
-  .stats-bar {
-    position: fixed;
-    bottom: 2rem;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    gap: 3rem;
-    font-family: 'Orbitron', sans-serif;
-    font-size: 0.6rem;
-    letter-spacing: 0.2em;
-    color: rgba(255, 255, 255, 0.4);
-    z-index: 20;
-  }
-
-  .stat-item span {
-    color: rgba(0, 212, 255, 0.8);
-    font-weight: 700;
-  }
-
-  .corner-frame {
-    position: fixed;
-    width: 60px; height: 60px;
-    z-index: 15;
-  }
-
-  .corner-frame.tl { top: 1.5rem; left: 1.5rem; border-top: 1px solid rgba(123, 45, 255, 0.4); border-left: 1px solid rgba(123, 45, 255, 0.4); }
-  .corner-frame.tr { top: 1.5rem; right: 1.5rem; border-top: 1px solid rgba(123, 45, 255, 0.4); border-right: 1px solid rgba(123, 45, 255, 0.4); }
-  .corner-frame.bl { bottom: 1.5rem; left: 1.5rem; border-bottom: 1px solid rgba(123, 45, 255, 0.4); border-left: 1px solid rgba(123, 45, 255, 0.4); }
-  .corner-frame.br { bottom: 1.5rem; right: 1.5rem; border-bottom: 1px solid rgba(123, 45, 255, 0.4); border-right: 1px solid rgba(123, 45, 255, 0.4); }
 </style>
 </head>
 <body>
+<div class="loader" id="loader">
+  <span>INITIALIZING SYSTEM</span>
+  <div class="bar"><div class="bar-inner" id="bar-inner"></div></div>
+</div>
 
-<div id="ui-overlay">
-  <div class="corner-frame tl"></div>
-  <div class="corner-frame tr"></div>
-  <div class="corner-frame bl"></div>
-  <div class="corner-frame br"></div>
+<div class="overlay">
+  <div class="grid"></div>
+  <div class="scanlines"></div>
+  <div class="bracket tl"></div>
+  <div class="bracket tr"></div>
+  <div class="bracket bl"></div>
+  <div class="bracket br"></div>
 
-  <div class="state-info" id="state-0">
-    <h1>COSMOS</h1>
-    <div class="divider"></div>
-    <div class="subtitle">Galactic Ring Formation</div>
+  <div class="panel telemetry-left">
+    <div>FPS <span class="value" id="s-fps">60</span></div>
+    <div>PARTICLES <span class="value" id="s-count">102400</span></div>
+    <div>STATE <span class="value" id="s-state">00</span></div>
+    <div>BASS <span class="value" id="s-bass">0.00</span></div>
+    <div>MID/HIGH <span class="value" id="s-mid">0.00</span></div>
   </div>
-  <div class="state-info" id="state-1">
-    <h1>WEB3</h1>
-    <div class="divider"></div>
-    <div class="subtitle">Decentralized Data Matrix</div>
+
+  <div class="panel telemetry-right">
+    <div><span>CURSOR X</span><span class="value" id="s-mx">0.00</span></div>
+    <div><span>CURSOR Y</span><span class="value" id="s-my">0.00</span></div>
+    <div><span>CURSOR Z</span><span class="value" id="s-mz">0.00</span></div>
+    <div><span>CAM SPD</span><span class="value" id="s-cspd">0.00</span></div>
+    <div><span>MODE</span><span class="value" id="s-mode">HOVER</span></div>
   </div>
-  <div class="state-info" id="state-2">
-    <h1>BIOLOGY</h1>
-    <div class="divider"></div>
-    <div class="subtitle">DNA Double Helix Structure</div>
+
+  <div class="scene-label" id="label-0">
+    <div class="eyebrow">Origin · 001</div>
+    <h1 data-text="NEBULA ENGINE">NEBULA ENGINE</h1>
+    <div class="line"></div>
+    <div class="desc">Gravitational nursery of accretion, turbulence and radiant stellar bloom.</div>
+  </div>
+  <div class="scene-label" id="label-1">
+    <div class="eyebrow">Infrastructure · 002</div>
+    <h1 data-text="COMPUTE GRID">COMPUTE GRID</h1>
+    <div class="line"></div>
+    <div class="desc">Particles explode outward into a distributed concentric field for computation and engineering.</div>
+  </div>
+  <div class="scene-label" id="label-2">
+    <div class="eyebrow">Intelligence · 003</div>
+    <h1 data-text="NEURAL BRAIN">NEURAL BRAIN</h1>
+    <div class="line"></div>
+    <div class="desc">A synaptic volumetric mesh of cognitive flow, pulsing with living data.</div>
+  </div>
+  <div class="scene-label" id="label-3">
+    <div class="eyebrow">Protocol · 004</div>
+    <h1 data-text="WEB3 MATRIX">WEB3 MATRIX</h1>
+    <div class="line"></div>
+    <div class="desc">Structured lattice consensus rendered as a floating crystalline topology.</div>
+  </div>
+  <div class="scene-label" id="label-4">
+    <div class="eyebrow">Organic · 005</div>
+    <h1 data-text="DNA HELIX">DNA HELIX</h1>
+    <div class="line"></div>
+    <div class="desc">Molecular signal braided into a vertical helical scaffold of luminous biology.</div>
+  </div>
+  <div class="scene-label" id="label-5">
+    <div class="eyebrow">Return · 006</div>
+    <h1 data-text="COSMIC LOOP">COSMIC LOOP</h1>
+    <div class="line"></div>
+    <div class="desc">The system exhales, unbinds and returns to the galactic source for another cycle.</div>
   </div>
 </div>
 
-<nav class="state-nav">
-  <div class="nav-dot active" data-state="0"><span class="label">COSMOS</span></div>
-  <div class="nav-dot" data-state="1"><span class="label">WEB3</span></div>
-  <div class="nav-dot" data-state="2"><span class="label">BIOLOGY</span></div>
+<nav class="nav-pills" id="nav">
+  <div class="pill active" data-state="0" data-label="NEBULA"></div>
+  <div class="pill" data-state="1" data-label="GRID"></div>
+  <div class="pill" data-state="2" data-label="BRAIN"></div>
+  <div class="pill" data-state="3" data-label="WEB3"></div>
+  <div class="pill" data-state="4" data-label="DNA"></div>
+  <div class="pill" data-state="5" data-label="LOOP"></div>
 </nav>
 
-<div class="stats-bar">
-  <div class="stat-item">PARTICLES: <span>65536</span></div>
-  <div class="stat-item">STATE: <span id="stat-state">RING</span></div>
-  <div class="stat-item">FPS: <span id="stat-fps">60</span></div>
+<div class="status-bar">
+  <div>RAY MODE <span class="value" id="s-ray">MAGNETIC</span></div>
+  <div>FOCUS <span class="value" id="s-focus">18.00</span></div>
+  <div>GPGPU <span class="value">320x320</span></div>
 </div>
 
+<button class="audio-button" id="audio-btn">Activate Audio</button>
+<div class="hint">Hover = Repel / Drag = Micro Black Hole / Arrow Keys = Navigate</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/misc/GPUComputationRenderer.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/BokehPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/BokehShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/TextPlugin.min.js"></script>
 
 <script>
-// ============================================================
-// SIMPLEX NOISE GLSL IMPLEMENTATION
-// Embedded directly to ensure shader has access to noise functions
-// ============================================================
-const SIMPLEX_NOISE_GLSL = `
-//
-// Description : Array and textureless GLSL 2D/3D/4D simplex noise.
-//               Ian McEwan, Ashima Arts.
-//
-vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
-vec4 mod289(vec4 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
-vec4 permute(vec4 x) { return mod289(((x*34.0)+1.0)*x); }
-vec4 taylorInvSqrt(vec4 r) { return 1.79284291400159 - 0.85373472095314 * r; }
+gsap.registerPlugin(TextPlugin);
 
-float snoise(vec3 v) {
-  const vec2 C = vec2(1.0/6.0, 1.0/3.0);
-  const vec4 D = vec4(0.0, 0.5, 1.0, 2.0);
-  vec3 i = floor(v + dot(v, C.yyy));
-  vec3 x0 = v - i + dot(i, C.xxx);
-  vec3 g = step(x0.yzx, x0.xyz);
-  vec3 l = 1.0 - g;
-  vec3 i1 = min(g.xyz, l.zxy);
-  vec3 i2 = max(g.xyz, l.zxy);
-  vec3 x1 = x0 - i1 + C.xxx;
-  vec3 x2 = x0 - i2 + C.yyy;
-  vec3 x3 = x0 - D.yyy;
-  i = mod289(i);
-  vec4 p = permute(permute(permute(
-    i.z + vec4(0.0, i1.z, i2.z, 1.0))
-    + i.y + vec4(0.0, i1.y, i2.y, 1.0))
-    + i.x + vec4(0.0, i1.x, i2.x, 1.0));
-  float n_ = 0.142857142857;
-  vec3 ns = n_ * D.wyz - D.xzx;
-  vec4 j = p - 49.0 * floor(p * ns.z * ns.z);
-  vec4 x_ = floor(j * ns.z);
-  vec4 y_ = floor(j - 7.0 * x_);
-  vec4 x = x_ * ns.x + ns.yyyy;
-  vec4 y = y_ * ns.x + ns.yyyy;
-  vec4 h = 1.0 - abs(x) - abs(y);
-  vec4 b0 = vec4(x.xy, y.xy);
-  vec4 b1 = vec4(x.zw, y.zw);
-  vec4 s0 = floor(b0)*2.0 + 1.0;
-  vec4 s1 = floor(b1)*2.0 + 1.0;
-  vec4 sh = -step(h, vec4(0.0));
-  vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy;
-  vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww;
-  vec3 p0 = vec3(a0.xy, h.x);
-  vec3 p1 = vec3(a0.zw, h.y);
-  vec3 p2 = vec3(a1.xy, h.z);
-  vec3 p3 = vec3(a1.zw, h.w);
-  vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2,p2), dot(p3,p3)));
-  p0 *= norm.x; p1 *= norm.y; p2 *= norm.z; p3 *= norm.w;
-  vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);
-  m = m * m;
-  return 42.0 * dot(m*m, vec4(dot(p0,x0), dot(p1,x1), dot(p2,x2), dot(p3,x3)));
+const SIM_SIZE=320;
+const PARTICLES=SIM_SIZE*SIM_SIZE;
+const TWO_PI=Math.PI*2;
+
+const NOISE_GLSL=`
+vec3 mod289(vec3 x){return x-floor(x*(1.0/289.0))*289.0;}
+vec4 mod289(vec4 x){return x-floor(x*(1.0/289.0))*289.0;}
+vec4 permute(vec4 x){return mod289(((x*34.0)+1.0)*x);}
+vec4 taylorInvSqrt(vec4 r){return 1.79284291400159-0.85373472095314*r;}
+
+float snoise(vec3 v){
+  const vec2 C=vec2(1.0/6.0,1.0/3.0);
+  const vec4 D=vec4(0.0,0.5,1.0,2.0);
+  vec3 i=floor(v+dot(v,C.yyy));
+  vec3 x0=v-i+dot(i,C.xxx);
+  vec3 g=step(x0.yzx,x0.xyz);
+  vec3 l=1.0-g;
+  vec3 i1=min(g.xyz,l.zxy);
+  vec3 i2=max(g.xyz,l.zxy);
+  vec3 x1=x0-i1+C.xxx;
+  vec3 x2=x0-i2+C.yyy;
+  vec3 x3=x0-D.yyy;
+  i=mod289(i);
+  vec4 p=permute(permute(permute(
+    i.z+vec4(0.0,i1.z,i2.z,1.0))
+    +i.y+vec4(0.0,i1.y,i2.y,1.0))
+    +i.x+vec4(0.0,i1.x,i2.x,1.0));
+  float n_=0.142857142857;
+  vec3 ns=n_*D.wyz-D.xzx;
+  vec4 j=p-49.0*floor(p*ns.z*ns.z);
+  vec4 x_=floor(j*ns.z);
+  vec4 y_=floor(j-7.0*x_);
+  vec4 x=x_*ns.x+ns.yyyy;
+  vec4 y=y_*ns.x+ns.yyyy;
+  vec4 h=1.0-abs(x)-abs(y);
+  vec4 b0=vec4(x.xy,y.xy);
+  vec4 b1=vec4(x.zw,y.zw);
+  vec4 s0=floor(b0)*2.0+1.0;
+  vec4 s1=floor(b1)*2.0+1.0;
+  vec4 sh=-step(h,vec4(0.0));
+  vec4 a0=b0.xzyw+s0.xzyw*sh.xxyy;
+  vec4 a1=b1.xzyw+s1.xzyw*sh.zzww;
+  vec3 p0=vec3(a0.xy,h.x);
+  vec3 p1=vec3(a0.zw,h.y);
+  vec3 p2=vec3(a1.xy,h.z);
+  vec3 p3=vec3(a1.zw,h.w);
+  vec4 norm=taylorInvSqrt(vec4(dot(p0,p0),dot(p1,p1),dot(p2,p2),dot(p3,p3)));
+  p0*=norm.x;p1*=norm.y;p2*=norm.z;p3*=norm.w;
+  vec4 m=max(0.6-vec4(dot(x0,x0),dot(x1,x1),dot(x2,x2),dot(x3,x3)),0.0);
+  m=m*m;
+  return 42.0*dot(m*m,vec4(dot(p0,x0),dot(p1,x1),dot(p2,x2),dot(p3,x3)));
 }
-`;
 
-// ============================================================
-// VERTEX SHADER
-// Implements simplex noise for organic fluid wave motion
-// Supports morphing between 3 states via u_progress
-// ============================================================
-const vertexShader = `
-${SIMPLEX_NOISE_GLSL}
-
-uniform float u_time;
-uniform float u_progress;
-uniform float u_morphSpeed;
-uniform float u_noiseIntensity;
-
-attribute vec3 a_targetPosition;
-attribute float a_randomSeed;
-
-varying float v_noise;
-varying float v_depth;
-varying float v_randomSeed;
-varying vec3 v_position;
-
-void main() {
-  float t = u_progress;
-  
-  // LERP between current and target position based on u_progress
-  vec3 pos = mix(position, a_targetPosition, t);
-  
-  // Multi-octave simplex noise for organic fluid motion
-  float speed = u_time * 0.15;
-  
-  // Primary noise wave - large scale undulation
-  float noise1 = snoise(vec3(pos.x * 0.3 + speed, pos.y * 0.3, pos.z * 0.3 + speed * 0.7));
-  
-  // Secondary noise - medium detail turbulence
-  float noise2 = snoise(vec3(pos.x * 0.8 - speed * 1.3, pos.y * 0.8 + speed * 0.5, pos.z * 0.8)) * 0.5;
-  
-  // Tertiary noise - fine detail shimmer
-  float noise3 = snoise(vec3(pos.x * 2.0 + speed * 2.0, pos.y * 2.0 - speed, pos.z * 2.0 + speed * 1.5)) * 0.25;
-  
-  // Combined noise displacement
-  float combinedNoise = noise1 + noise2 + noise3;
-  v_noise = combinedNoise;
-  
-  // Apply noise as displacement along multiple axes for fluid motion
-  vec3 displacement = vec3(
-    combinedNoise * u_noiseIntensity * 0.6,
-    snoise(vec3(pos.x * 0.5, pos.y * 0.5 + speed, pos.z * 0.5)) * u_noiseIntensity * 0.8,
-    combinedNoise * u_noiseIntensity * 0.4
+vec3 snoiseVec3(vec3 x){
+  return vec3(
+    snoise(x),
+    snoise(x+vec3(31.416,47.853,12.793)),
+    snoise(x+vec3(73.156,26.938,54.617))
   );
-  
-  pos += displacement;
-  v_position = pos;
-  v_randomSeed = a_randomSeed;
-  
-  vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
-  v_depth = -mvPosition.z;
-  
-  // Attenuate point size based on depth
-  gl_PointSize = (300.0 / -mvPosition.z) * (1.0 + 0.3 * combinedNoise);
-  gl_PointSize = clamp(gl_PointSize, 1.0, 8.0);
-  
-  gl_Position = projectionMatrix * mvPosition;
+}
+
+vec3 curlNoise(vec3 p){
+  const float e=0.1;
+  vec3 dx=vec3(e,0.0,0.0);
+  vec3 dy=vec3(0.0,e,0.0);
+  vec3 dz=vec3(0.0,0.0,e);
+  vec3 px0=snoiseVec3(p-dx),px1=snoiseVec3(p+dx);
+  vec3 py0=snoiseVec3(p-dy),py1=snoiseVec3(p+dy);
+  vec3 pz0=snoiseVec3(p-dz),pz1=snoiseVec3(p+dz);
+  float x=(py1.z-py0.z)-(pz1.y-pz0.y);
+  float y=(pz1.x-pz0.x)-(px1.z-px0.z);
+  float z=(px1.y-px0.y)-(py1.x-py0.x);
+  return normalize(vec3(x,y,z)+1e-5)/(2.0*e);
 }
 `;
 
-// ============================================================
-// FRAGMENT SHADER
-// Creates soft glowing particles with neon color palette
-// ============================================================
-const fragmentShader = `
+const velocityShader=`
+${NOISE_GLSL}
 uniform float u_time;
-uniform vec3 u_color1;  // Neon blue
-uniform vec3 u_color2;  // Deep purple
-uniform vec3 u_color3;  // Vibrant magenta
-uniform float u_opacity;
+uniform float u_delta;
+uniform sampler2D u_target;
+uniform vec3 u_attractor;
+uniform float u_attractorStrength;
+uniform float u_transition;
+uniform float u_audioBass;
+uniform float u_audioMid;
+uniform float u_coreSpin;
+uniform vec3 u_mousePos;
+uniform vec3 u_mouseVelocity;
+uniform float u_mouseMode;
+uniform float u_drag;
 
-varying float v_noise;
-varying float v_depth;
-varying float v_randomSeed;
-varying vec3 v_position;
+void main(){
+  vec2 uv=gl_FragCoord.xy/resolution.xy;
+  vec3 pos=texture2D(texturePosition,uv).xyz;
+  vec3 vel=texture2D(textureVelocity,uv).xyz;
+  vec3 target=texture2D(u_target,uv).xyz;
 
-void main() {
-  // Soft circular particle with distance-from-center falloff
-  vec2 center = gl_PointCoord - 0.5;
-  float dist = length(center);
-  
-  // Smooth soft circle with glow
-  float alpha = 1.0 - smoothstep(0.0, 0.5, dist);
-  alpha *= alpha; // Sharper falloff for glow effect
-  
-  // Color interpolation based on noise and position
-  float colorMix1 = sin(v_noise * 2.0 + u_time * 0.3 + v_randomSeed * 6.28) * 0.5 + 0.5;
-  float colorMix2 = cos(v_position.y * 0.5 + u_time * 0.2) * 0.5 + 0.5;
-  
-  // Blend the three neon colors
-  vec3 color = mix(u_color1, u_color2, colorMix1);
-  color = mix(color, u_color3, colorMix2 * 0.6);
-  
-  // Add brightness variation based on noise
-  float brightness = 0.7 + v_noise * 0.3;
-  color *= brightness;
-  
-  // Depth-based fade for atmospheric perspective
-  float depthFade = clamp(1.0 - v_depth * 0.008, 0.3, 1.0);
-  
-  // Final alpha with depth fade
-  float finalAlpha = alpha * u_opacity * depthFade;
-  
-  // Discard transparent pixels
-  if (finalAlpha < 0.01) discard;
-  
-  gl_FragColor = vec4(color, finalAlpha);
+  vec3 toTarget=target-pos;
+  float targetDist=length(toTarget)+1e-4;
+  vec3 dirToTarget=toTarget/targetDist;
+
+  float radial=length(pos.xz)+1e-4;
+  vec3 tangent=normalize(vec3(-pos.z,0.0,pos.x));
+  float coreMask=1.0-smoothstep(2.5,14.0,radial);
+  float outerMask=smoothstep(5.0,16.0,radial);
+
+  vec3 force=vec3(0.0);
+  force+=dirToTarget*(0.4+u_transition*1.3)*min(targetDist,9.0);
+  force+=curlNoise(pos*0.12+u_time*0.18)*(0.9+u_transition*1.8+u_audioBass*1.6);
+  force+=tangent*(u_coreSpin*(0.8+u_audioBass*2.2))*coreMask;
+  force+=normalize(u_attractor-pos+1e-5)*u_attractorStrength*(0.2+u_transition)*0.45;
+
+  float md=distance(pos,u_mousePos);
+  float mouseFalloff=exp(-md*0.42);
+  if(u_mouseMode<1.5){
+    force+=normalize(pos-u_mousePos+1e-5)*(2.4+u_audioMid)*mouseFalloff;
+  }else{
+    vec3 blackHole=normalize(u_mousePos-pos+1e-5)*(4.8+u_drag*2.8)*mouseFalloff;
+    vec3 vortex=normalize(cross(vec3(0.0,1.0,0.0),u_mousePos-pos+1e-5))*(2.8+u_transition*1.5)*mouseFalloff;
+    force+=blackHole+vortex+u_mouseVelocity*0.18*mouseFalloff;
+  }
+
+  float sparkle=snoise(pos*0.42+u_time*1.6+uv.xyx*13.0);
+  force+=normalize(vec3(sparkle,sparkle*0.35,-sparkle)+1e-5)*u_audioMid*outerMask*0.9;
+
+  vel+=force*u_delta;
+  vel*=0.944-u_audioBass*0.018;
+  vel=clamp(vel,vec3(-2.8),vec3(2.8));
+
+  gl_FragColor=vec4(vel,1.0);
 }
 `;
 
-// ============================================================
-// MAIN APPLICATION CLASS
-// ============================================================
-class CosmicParticleSystem {
-  constructor() {
-    // Configuration
-    this.PARTICLE_COUNT = 65536; // 256^2 for optimal performance
-    this.currentState = 0;
-    this.targetState = 0;
-    this.isTransitioning = false;
-    
-    // Color palette: neon blue, deep purple, vibrant magenta
-    this.COLORS = {
-      neonBlue: new THREE.Color(0x00d4ff),
-      deepPurple: new THREE.Color(0x7b2dff),
-      vibrantMagenta: new THREE.Color(0xff2d95)
-    };
-    
-    // Camera positions for each state
-    this.cameraStates = [
-      { pos: [0, 8, 25], lookAt: [0, 0, 0] },    // Ring - slightly elevated
-      { pos: [0, 5, 30], lookAt: [0, 0, 0] },     // Grid - straight on
-      { pos: [15, 5, 20], lookAt: [0, 0, 0] }      // Helix - angled view
+const positionShader=`
+uniform float u_delta;
+void main(){
+  vec2 uv=gl_FragCoord.xy/resolution.xy;
+  vec3 pos=texture2D(texturePosition,uv).xyz;
+  vec3 vel=texture2D(textureVelocity,uv).xyz;
+  pos+=vel*u_delta*3.1;
+  gl_FragColor=vec4(pos,1.0);
+}
+`;
+
+const particleVertexShader=`
+${NOISE_GLSL}
+uniform sampler2D u_positionTex;
+uniform sampler2D u_velocityTex;
+uniform float u_time;
+uniform float u_bass;
+uniform float u_mid;
+uniform float u_cameraSpeed;
+uniform float u_focus;
+uniform float u_activeState;
+
+attribute vec2 a_ref;
+
+varying vec3 v_worldPos;
+varying vec3 v_velocity;
+varying float v_speed;
+varying float v_depth;
+varying float v_density;
+varying float v_stateMix;
+varying vec2 v_streakDir;
+
+void main(){
+  vec3 pos=texture2D(u_positionTex,a_ref).xyz;
+  vec3 vel=texture2D(u_velocityTex,a_ref).xyz;
+  float radial=length(pos.xz);
+  float density=1.0-clamp(radial/18.0,0.0,1.0);
+
+  pos.y+=sin(u_time*1.4+radial*0.55)*u_bass*0.18*density;
+  pos+=normalize(vec3(snoise(pos*0.14+u_time*0.3),snoise(pos*0.19-u_time*0.2),snoise(pos*0.17+4.0))+1e-5)*u_mid*0.05*(1.0-density);
+
+  vec4 mv=modelViewMatrix*vec4(pos,1.0);
+  vec4 clip=projectionMatrix*mv;
+  gl_Position=clip;
+
+  v_worldPos=pos;
+  v_velocity=vel;
+  v_speed=length(vel);
+  v_depth=-mv.z;
+  v_density=density;
+  v_stateMix=u_activeState;
+
+  vec3 viewVel=(modelViewMatrix*vec4(vel,0.0)).xyz;
+  vec2 dir=normalize(viewVel.xy+vec2(1e-5));
+  v_streakDir=dir;
+
+  float outerScale=mix(2.0,6.4,1.0-density);
+  float starScale=mix(1.0,0.62,density);
+  float motionScale=1.0+min(v_speed*0.6+u_cameraSpeed*1.1,2.4);
+  float pointSize=(115.0/max(v_depth,1.0))*outerScale*starScale*motionScale;
+  gl_PointSize=clamp(pointSize,.8,12.0);
+}
+`;
+
+const particleFragmentShader=`
+${NOISE_GLSL}
+uniform float u_time;
+uniform float u_bass;
+uniform float u_mid;
+uniform float u_opacityMultiplier;
+uniform float u_activeState;
+
+varying vec3 v_worldPos;
+varying vec3 v_velocity;
+varying float v_speed;
+varying float v_depth;
+varying float v_density;
+varying float v_stateMix;
+varying vec2 v_streakDir;
+
+vec3 stateTint(float s){
+  vec3 cyan=vec3(0.0,0.94,1.0);
+  vec3 violet=vec3(0.29,0.0,0.88);
+  vec3 magenta=vec3(1.0,0.0,0.5);
+  vec3 gold=vec3(1.0,0.67,0.0);
+  if(s<0.5) return mix(cyan,gold,0.28);
+  if(s<1.5) return mix(cyan,violet,0.5);
+  if(s<2.5) return mix(violet,magenta,0.45);
+  if(s<3.5) return mix(cyan,magenta,0.55);
+  if(s<4.5) return mix(magenta,gold,0.35);
+  return mix(cyan,gold,0.16);
+}
+
+void main(){
+  vec2 p=gl_PointCoord-0.5;
+  float dirProj=dot(p,normalize(v_streakDir));
+  float ortho=dot(p,vec2(-v_streakDir.y,v_streakDir.x));
+  float stretch=1.0+min(v_speed*0.9,2.5);
+  float streakShape=length(vec2(dirProj/stretch,ortho));
+  if(streakShape>0.5) discard;
+
+  float soft=pow(1.0-streakShape*2.0,3.0);
+  float radial=length(v_worldPos.xz);
+  float cloud1=snoise(v_worldPos*0.16+u_time*0.12);
+  float cloud2=snoise(v_worldPos*0.08+vec3(7.0,-4.0,3.0)-u_time*0.08);
+  float cloud=cloud1*0.62+cloud2*0.38;
+
+  vec3 cyan=vec3(0.0,0.94,1.0);
+  vec3 violet=vec3(0.29,0.0,0.88);
+  vec3 magenta=vec3(1.0,0.0,0.5);
+  vec3 gold=vec3(1.0,0.67,0.0);
+
+  float n=cloud*0.5+0.5;
+  float coreMask=pow(v_density,1.7);
+  float dustMask=1.0-v_density;
+  vec3 color=mix(violet,magenta,smoothstep(0.2,0.8,n));
+  color=mix(color,cyan,smoothstep(0.65,1.0,coreMask));
+  color=mix(color,gold,pow(coreMask,2.0)*(0.42+u_bass*0.65));
+  color=mix(color,stateTint(u_activeState),0.35);
+  color=mix(color,cyan,clamp(v_speed*0.35,0.0,0.25));
+
+  float denseHeat=pow(coreMask,2.8)*(1.4+u_bass*2.2);
+  float dustScatter=(0.18+0.22*n+u_mid*0.1)*(0.45+dustMask*0.9);
+  float intensity=mix(dustScatter,denseHeat,coreMask);
+  intensity*=0.85+sin(u_time*0.7+v_worldPos.x*0.6+v_worldPos.z*0.45)*0.08;
+
+  float nearFade=smoothstep(1.0,4.0,v_depth);
+  float farFade=1.0-smoothstep(48.0,80.0,v_depth);
+  float alpha=soft*intensity*nearFade*farFade*u_opacityMultiplier;
+  if(alpha<0.003) discard;
+
+  gl_FragColor=vec4(color*intensity,alpha);
+}
+`;
+
+const lensPassShader={
+  uniforms:{
+    tDiffuse:{value:null},
+    u_time:{value:0},
+    u_aberration:{value:0.002},
+    u_grain:{value:0.045}
+  },
+  vertexShader:`
+    varying vec2 vUv;
+    void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}
+  `,
+  fragmentShader:`
+    uniform sampler2D tDiffuse;
+    uniform float u_time;
+    uniform float u_aberration;
+    uniform float u_grain;
+    varying vec2 vUv;
+    float hash(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453123);}
+    void main(){
+      vec2 uv=vUv;
+      vec2 dir=uv-0.5;
+      float d=dot(dir,dir);
+      vec2 off=dir*u_aberration*d*2.4;
+      float r=texture2D(tDiffuse,uv+off).r;
+      float g=texture2D(tDiffuse,uv).g;
+      float b=texture2D(tDiffuse,uv-off).b;
+      vec3 color=vec3(r,g,b);
+      float grain=(hash(uv+u_time*0.001)-0.5)*u_grain;
+      color+=grain;
+      gl_FragColor=vec4(color,1.0);
+    }
+  `
+};
+
+const finalPassShader={
+  uniforms:{
+    tDiffuse:{value:null},
+    u_vignette:{value:0.62}
+  },
+  vertexShader:`
+    varying vec2 vUv;
+    void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}
+  `,
+  fragmentShader:`
+    uniform sampler2D tDiffuse;
+    uniform float u_vignette;
+    varying vec2 vUv;
+    void main(){
+      vec2 uv=vUv;
+      vec2 d=uv-0.5;
+      float vignette=1.0-dot(d,d)*u_vignette*1.6;
+      vec3 color=texture2D(tDiffuse,uv).rgb*vignette;
+      gl_FragColor=vec4(color,1.0);
+    }
+  `
+};
+
+class CosmicPortfolio{
+  constructor(){
+    this.size=SIM_SIZE;
+    this.count=PARTICLES;
+    this.curState=0;
+    this.targetState=0;
+    this.animating=false;
+    this.mouse=new THREE.Vector2();
+    this.mouseNdc=new THREE.Vector2();
+    this.mouseWorld=new THREE.Vector3(0,0,0);
+    this.mousePrev=new THREE.Vector3(0,0,0);
+    this.mouseVelocity=new THREE.Vector3();
+    this.mouseDown=false;
+    this.dragValue=0;
+    this.audioActive=false;
+    this.audioBass=0;
+    this.audioMid=0;
+    this.cameraVelocity=0;
+    this.cameraPrev=new THREE.Vector3();
+    this.focusDistance=18;
+    this.clock=new THREE.Clock();
+    this.fps=60;
+    this.fCnt=0;
+    this.fT=performance.now();
+    this.views=[
+      {pos:[0,3.4,18],look:[0,0,0],focus:16.5,attractor:[0,0,0]},
+      {pos:[0,2.6,28],look:[0,0,0],focus:21.5,attractor:[0,0,0]},
+      {pos:[8,4.4,17],look:[0,0,0],focus:14.5,attractor:[2.5,1.0,0]},
+      {pos:[0,3.2,22],look:[0,0,0],focus:17.5,attractor:[0,0,0]},
+      {pos:[9,4.0,15],look:[0,0,0],focus:13.5,attractor:[0,4.0,0]},
+      {pos:[0,4.8,23],look:[0,0,0],focus:18.5,attractor:[0,0,0]}
     ];
-    
-    // State labels for the stats bar
-    this.stateLabels = ['RING', 'MATRIX', 'HELIX'];
-    
-    // Performance tracking
-    this.frameCount = 0;
-    this.lastFPSTime = performance.now();
-    this.currentFPS = 60;
-    
-    this.init();
-    this.createParticleStates();
-    this.createParticleSystem();
-    this.setupUI();
-    this.animate();
+    this.tags=['00','01','02','03','04','05'];
+    this.stateTitles=['NEBULA ENGINE','COMPUTE GRID','NEURAL BRAIN','WEB3 MATRIX','DNA HELIX','COSMIC LOOP'];
+    this._cacheDom();
+    this._progress(4);
+    this._renderer();
+    this._progress(12);
+    this._camera();
+    this._progress(20);
+    this._buildTargets();
+    this._progress(46);
+    this._gpgpu();
+    this._progress(64);
+    this._scene();
+    this._progress(78);
+    this._postfx();
+    this._progress(88);
+    this._ui();
+    this._audio();
+    this._progress(100);
+    setTimeout(()=>this.dom.loader.classList.add('done'),600);
+    this._loop();
   }
-  
-  // ============================================================
-  // INITIALIZATION
-  // ============================================================
-  init() {
-    // Scene setup
-    this.scene = new THREE.Scene();
-    this.scene.fog = new THREE.FogExp2(0x000000, 0.015);
-    
-    // Camera setup
-    this.camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-    this.camera.position.set(...this.cameraStates[0].pos);
-    this.camera.lookAt(new THREE.Vector3(...this.cameraStates[0].lookAt));
-    
-    // Renderer setup
-    this.renderer = new THREE.WebGLRenderer({
-      antialias: true,
-      alpha: false,
-      powerPreference: 'high-performance'
-    });
-    this.renderer.setSize(window.innerWidth, window.innerHeight);
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    this.renderer.setClearColor(0x000000, 1);
-    document.body.appendChild(this.renderer.domElement);
-    
-    // Clock for time uniform
-    this.clock = new THREE.Clock();
-    
-    // Mouse tracking for subtle parallax
-    this.mouse = { x: 0, y: 0 };
-    this.targetMouse = { x: 0, y: 0 };
-    
-    // Event listeners
-    window.addEventListener('resize', () => this.onResize());
-    window.addEventListener('mousemove', (e) => {
-      this.targetMouse.x = (e.clientX / window.innerWidth) * 2 - 1;
-      this.targetMouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
-    });
-  }
-  
-  // ============================================================
-  // PARTICLE STATE GENERATION
-  // Creates position arrays for each morphing state
-  // ============================================================
-  createParticleStates() {
-    this.states = {
-      positions0: new Float32Array(this.PARTICLE_COUNT * 3), // Cosmic ring
-      positions1: new Float32Array(this.PARTICLE_COUNT * 3), // Data grid
-      positions2: new Float32Array(this.PARTICLE_COUNT * 3), // DNA helix
+
+  _cacheDom(){
+    this.dom={
+      loader:document.getElementById('loader'),
+      bar:document.getElementById('bar-inner'),
+      state:document.getElementById('s-state'),
+      fps:document.getElementById('s-fps'),
+      count:document.getElementById('s-count'),
+      bass:document.getElementById('s-bass'),
+      mid:document.getElementById('s-mid'),
+      mx:document.getElementById('s-mx'),
+      my:document.getElementById('s-my'),
+      mz:document.getElementById('s-mz'),
+      cspd:document.getElementById('s-cspd'),
+      mode:document.getElementById('s-mode'),
+      ray:document.getElementById('s-ray'),
+      focus:document.getElementById('s-focus'),
+      audioBtn:document.getElementById('audio-btn')
     };
-    
-    this.generateRingState();
-    this.generateGridState();
-    this.generateHelixState();
+    this.dom.count.textContent=String(this.count);
   }
-  
-  // State 0: Flat rotating cosmic ring (galaxy shape)
-  generateRingState() {
-    const positions = this.states.positions0;
-    const sqrtCount = Math.sqrt(this.PARTICLE_COUNT);
-    
-    for (let i = 0; i < this.PARTICLE_COUNT; i++) {
-      const i3 = i * 3;
-      
-      // Galaxy spiral arm distribution
-      const arm = (i % 3) * (Math.PI * 2 / 3); // 3 spiral arms
-      const distance = Math.pow(Math.random(), 0.5) * 12; // Square root for uniform disk distribution
-      const spiralAngle = distance * 0.4 + arm; // Spiral twist
-      const jitter = (Math.random() - 0.5) * 2.5; // Random spread
-      
-      // Add some vertical spread for cosmic dust
-      const verticalSpread = (Math.random() - 0.5) * 1.5 * Math.exp(-distance * 0.15);
-      
-      positions[i3] = Math.cos(spiralAngle) * distance + jitter * Math.sin(spiralAngle * 2);
-      positions[i3 + 1] = verticalSpread;
-      positions[i3 + 2] = Math.sin(spiralAngle) * distance + jitter * Math.cos(spiralAngle * 2);
+
+  _progress(v){
+    this.dom.bar.style.width=v+'%';
+  }
+
+  _renderer(){
+    this.renderer=new THREE.WebGLRenderer({antialias:false,powerPreference:'high-performance'});
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio,1.5));
+    this.renderer.setSize(window.innerWidth,window.innerHeight);
+    this.renderer.setClearColor(0x030712,1);
+    this.renderer.outputEncoding=THREE.sRGBEncoding;
+    document.body.appendChild(this.renderer.domElement);
+  }
+
+  _camera(){
+    this.scene=new THREE.Scene();
+    this.camera=new THREE.PerspectiveCamera(48,window.innerWidth/window.innerHeight,0.1,220);
+    this.camera.position.set(...this.views[0].pos);
+    this.camera.lookAt(new THREE.Vector3(...this.views[0].look));
+    this.cameraPrev.copy(this.camera.position);
+    this.raycaster=new THREE.Raycaster();
+    this.intersectionPlane=new THREE.Plane(new THREE.Vector3(0,0,1),0);
+
+    window.addEventListener('resize',()=>this._resize());
+    window.addEventListener('pointermove',e=>this._onPointerMove(e));
+    window.addEventListener('pointerdown',e=>this._onPointerDown(e));
+    window.addEventListener('pointerup',()=>this._onPointerUp());
+    window.addEventListener('keydown',e=>{
+      if(e.key==='ArrowRight'||e.key==='ArrowDown') this.goTo((this.curState+1)%6);
+      if(e.key==='ArrowLeft'||e.key==='ArrowUp') this.goTo((this.curState+5)%6);
+    });
+  }
+
+  _resize(){
+    const w=window.innerWidth;
+    const h=window.innerHeight;
+    this.camera.aspect=w/h;
+    this.camera.updateProjectionMatrix();
+    this.renderer.setSize(w,h);
+    if(this.composer) this.composer.setSize(w,h);
+    if(this.bloom) this.bloom.setSize(w,h);
+    if(this.bokehPass){
+      this.bokehPass.uniforms['aspect'].value=w/h;
     }
   }
-  
-  // State 1: 3D bounding box / grid array (data matrix representation)
-  generateGridState() {
-    const positions = this.states.positions1;
-    const gridSize = Math.ceil(Math.cbrt(this.PARTICLE_COUNT));
-    const spacing = 1.2;
-    const offset = (gridSize - 1) * spacing * 0.5;
-    
-    let index = 0;
-    for (let x = 0; x < gridSize && index < this.PARTICLE_COUNT; x++) {
-      for (let y = 0; y < gridSize && index < this.PARTICLE_COUNT; y++) {
-        for (let z = 0; z < gridSize && index < this.PARTICLE_COUNT; z++) {
-          if (index >= this.PARTICLE_COUNT) break;
-          
-          const i3 = index * 3;
-          
-          // Create regular grid with slight random perturbation
-          const perturbation = 0.15;
-          positions[i3] = (x * spacing - offset) + (Math.random() - 0.5) * perturbation;
-          positions[i3 + 1] = (y * spacing - offset) + (Math.random() - 0.5) * perturbation;
-          positions[i3 + 2] = (z * spacing - offset) + (Math.random() - 0.5) * perturbation;
-          
-          index++;
+
+  _onPointerMove(e){
+    this.mouse.x=e.clientX;
+    this.mouse.y=e.clientY;
+    this.mouseNdc.x=(e.clientX/window.innerWidth)*2-1;
+    this.mouseNdc.y=-(e.clientY/window.innerHeight)*2+1;
+    this._updateMouseWorld();
+  }
+
+  _onPointerDown(e){
+    this.mouseDown=true;
+    this.dragValue=1;
+    this._onPointerMove(e);
+  }
+
+  _onPointerUp(){
+    this.mouseDown=false;
+  }
+
+  _updateMouseWorld(){
+    this.raycaster.setFromCamera(this.mouseNdc,this.camera);
+    this.raycaster.ray.intersectPlane(this.intersectionPlane,this.mouseWorld);
+    this.mouseVelocity.copy(this.mouseWorld).sub(this.mousePrev);
+    this.mousePrev.copy(this.mouseWorld);
+  }
+
+  _buildTargets(){
+    this.stateArrays=[
+      this._genNebula(this.count),
+      this._genRipple(this.count),
+      this._genBrain(this.count),
+      this._genCrystal(this.count),
+      this._genHelix(this.count),
+      null
+    ];
+    this.stateArrays[5]=new Float32Array(this.stateArrays[0]);
+    this.stateTextures=this.stateArrays.map(a=>this._arrayToTexture(a));
+  }
+
+  _arrayToTexture(array){
+    const tex=new THREE.DataTexture(new Float32Array(this.count*4),this.size,this.size,THREE.RGBAFormat,THREE.FloatType);
+    for(let i=0;i<this.count;i++){
+      const i3=i*3;
+      const i4=i*4;
+      tex.image.data[i4]=array[i3];
+      tex.image.data[i4+1]=array[i3+1];
+      tex.image.data[i4+2]=array[i3+2];
+      tex.image.data[i4+3]=1;
+    }
+    tex.needsUpdate=true;
+    return tex;
+  }
+
+  _gauss(){
+    let u=0,v=0;
+    while(u===0) u=Math.random();
+    while(v===0) v=Math.random();
+    return Math.sqrt(-2*Math.log(u))*Math.cos(TWO_PI*v);
+  }
+
+  _genNebula(n){
+    const p=new Float32Array(n*3);
+    const arms=2;
+    const scale=3.1;
+    const maxR=16.2;
+    const wrap=2.9;
+    for(let i=0;i<n;i++){
+      const i3=i*3;
+      let r,theta,y;
+      if(Math.random()<0.34){
+        r=Math.abs(this._gauss())*1.35;
+        theta=Math.random()*TWO_PI;
+        y=this._gauss()*0.6;
+      }else{
+        const arm=i%arms;
+        const armOffset=arm*(TWO_PI/arms);
+        const u=Math.random();
+        r=-scale*Math.log(1-u*(1-Math.exp(-maxR/scale)));
+        theta=wrap*Math.log(r/scale+1)+armOffset+this._gauss()*(0.16+r*0.08);
+        y=this._gauss()*(0.14+Math.pow(Math.min(r/maxR,1),1.5)*1.8);
+      }
+      const swirl=Math.sin(theta*2+r*0.8)*0.36*(1-r/maxR);
+      p[i3]=Math.cos(theta)*(r+swirl);
+      p[i3+1]=y;
+      p[i3+2]=Math.sin(theta)*(r+swirl);
+    }
+    return p;
+  }
+
+  _genRipple(n){
+    const p=new Float32Array(n*3);
+    for(let i=0;i<n;i++){
+      const i3=i*3;
+      const layer=Math.floor((i/n)*8);
+      const ring=5+layer*2.2+Math.random()*3.4;
+      const angle=Math.random()*TWO_PI;
+      const ripple=Math.sin(angle*12+ring*1.8)*0.26;
+      p[i3]=Math.cos(angle)*(ring+ripple);
+      p[i3+1]=(Math.random()-.5)*(1.2+layer*0.48);
+      p[i3+2]=Math.sin(angle)*(ring+ripple);
+    }
+    return p;
+  }
+
+  _genBrain(n){
+    const p=new Float32Array(n*3);
+    for(let i=0;i<n;i++){
+      const i3=i*3;
+      const th=Math.random()*TWO_PI;
+      const ph=Math.acos(2*Math.random()-1);
+      const base=6.2;
+      const deform=1+0.28*Math.sin(th*6)*Math.cos(ph*4)+0.22*Math.sin(th*12+ph*8)+0.08*Math.cos(th*18-ph*6);
+      const r=base*deform;
+      p[i3]=r*Math.sin(ph)*Math.cos(th);
+      p[i3+1]=r*Math.sin(ph)*Math.sin(th)*0.82;
+      p[i3+2]=r*Math.cos(ph);
+    }
+    return p;
+  }
+
+  _genCrystal(n){
+    const p=new Float32Array(n*3);
+    const grid=Math.ceil(Math.cbrt(n));
+    const spacing=1.52;
+    const offset=(grid-1)*spacing*0.5;
+    let idx=0;
+    for(let x=0;x<grid&&idx<n;x++){
+      for(let y=0;y<grid&&idx<n;y++){
+        for(let z=0;z<grid&&idx<n;z++){
+          const i3=idx*3;
+          p[i3]=x*spacing-offset+(Math.random()-.5)*0.1;
+          p[i3+1]=y*spacing-offset+(Math.random()-.5)*0.1;
+          p[i3+2]=z*spacing-offset+(Math.random()-.5)*0.1;
+          idx++;
         }
       }
     }
-    
-    // Fill remaining with scattered particles around the grid
-    for (let i = index; i < this.PARTICLE_COUNT; i++) {
-      const i3 = i * 3;
-      positions[i3] = (Math.random() - 0.5) * gridSize * spacing;
-      positions[i3 + 1] = (Math.random() - 0.5) * gridSize * spacing;
-      positions[i3 + 2] = (Math.random() - 0.5) * gridSize * spacing;
-    }
+    return p;
   }
-  
-  // State 2: DNA double-helix structure
-  generateHelixState() {
-    const positions = this.states.positions2;
-    const helixHeight = 20;
-    const helixRadius = 4;
-    const particlesPerStrand = Math.floor(this.PARTICLE_COUNT / 2);
-    
-    for (let i = 0; i < this.PARTICLE_COUNT; i++) {
-      const i3 = i * 3;
-      const strand = i < particlesPerStrand ? 0 : 1;
-      const localIndex = i < particlesPerStrand ? i : i - particlesPerStrand;
-      const t = localIndex / particlesPerStrand;
-      
-      // Helix angle
-      const angle = t * Math.PI * 8 + strand * Math.PI; // Phase offset for second strand
-      const y = (t - 0.5) * helixHeight;
-      
-      // Base helix position
-      const radius = helixRadius + (Math.random() - 0.5) * 0.3;
-      
-      // Cross-links between strands (base pairs)
-      const isBasePair = Math.random() < 0.15;
-      let x, z;
-      
-      if (isBasePair) {
-        // Interpolate between the two strands for base pair connections
-        const bpT = Math.random();
-        const angle1 = angle;
-        const angle2 = angle + Math.PI;
-        const midAngle = angle1 + (angle2 - angle1) * bpT;
-        x = Math.cos(midAngle) * radius * bpT;
-        z = Math.sin(midAngle) * radius * bpT;
-      } else {
-        x = Math.cos(angle) * radius;
-        z = Math.sin(angle) * radius;
+
+  _genHelix(n){
+    const p=new Float32Array(n*3);
+    const half=Math.floor(n/2);
+    const height=26;
+    const radius=4.7;
+    for(let i=0;i<n;i++){
+      const i3=i*3;
+      const strand=i<half?0:1;
+      const li=i<half?i:i-half;
+      const t=li/half;
+      const a=t*Math.PI*10+strand*Math.PI;
+      const y=(t-.5)*height;
+      const rr=radius+(Math.random()-.5)*0.16;
+      if(Math.random()<0.11){
+        const bt=Math.random();
+        const ba=a+Math.PI*bt;
+        p[i3]=Math.cos(ba)*rr*bt;
+        p[i3+2]=Math.sin(ba)*rr*bt;
+      }else{
+        p[i3]=Math.cos(a)*rr;
+        p[i3+2]=Math.sin(a)*rr;
       }
-      
-      positions[i3] = x;
-      positions[i3 + 1] = y;
-      positions[i3 + 2] = z;
+      p[i3+1]=y;
+    }
+    return p;
+  }
+
+  _gpgpu(){
+    this.gpu=new THREE.GPUComputationRenderer(this.size,this.size,this.renderer);
+    const pos0=this.gpu.createTexture();
+    const vel0=this.gpu.createTexture();
+    this._fillInitialTextures(pos0,vel0);
+
+    this.positionVariable=this.gpu.addVariable('texturePosition',positionShader,pos0);
+    this.velocityVariable=this.gpu.addVariable('textureVelocity',velocityShader,vel0);
+    this.gpu.setVariableDependencies(this.positionVariable,[this.positionVariable,this.velocityVariable]);
+    this.gpu.setVariableDependencies(this.velocityVariable,[this.positionVariable,this.velocityVariable]);
+
+    this.positionUniforms=this.positionVariable.material.uniforms;
+    this.velocityUniforms=this.velocityVariable.material.uniforms;
+    this.positionUniforms.u_delta={value:0};
+    this.velocityUniforms.u_time={value:0};
+    this.velocityUniforms.u_delta={value:0};
+    this.velocityUniforms.u_target={value:this.stateTextures[0]};
+    this.velocityUniforms.u_attractor={value:new THREE.Vector3(...this.views[0].attractor)};
+    this.velocityUniforms.u_attractorStrength={value:0.75};
+    this.velocityUniforms.u_transition={value:0};
+    this.velocityUniforms.u_audioBass={value:0};
+    this.velocityUniforms.u_audioMid={value:0};
+    this.velocityUniforms.u_coreSpin={value:1.15};
+    this.velocityUniforms.u_mousePos={value:new THREE.Vector3()};
+    this.velocityUniforms.u_mouseVelocity={value:new THREE.Vector3()};
+    this.velocityUniforms.u_mouseMode={value:1};
+    this.velocityUniforms.u_drag={value:0};
+
+    this.positionVariable.wrapS=this.positionVariable.wrapT=THREE.ClampToEdgeWrapping;
+    this.velocityVariable.wrapS=this.velocityVariable.wrapT=THREE.ClampToEdgeWrapping;
+
+    const error=this.gpu.init();
+    if(error) throw new Error(error);
+  }
+
+  _fillInitialTextures(posTex,velTex){
+    const posData=posTex.image.data;
+    const velData=velTex.image.data;
+    const state0=this.stateArrays[0];
+    for(let i=0;i<this.count;i++){
+      const i3=i*3;
+      const i4=i*4;
+      posData[i4]=state0[i3];
+      posData[i4+1]=state0[i3+1];
+      posData[i4+2]=state0[i3+2];
+      posData[i4+3]=1;
+      velData[i4]=(Math.random()-.5)*0.02;
+      velData[i4+1]=(Math.random()-.5)*0.02;
+      velData[i4+2]=(Math.random()-.5)*0.02;
+      velData[i4+3]=1;
     }
   }
-  
-  // ============================================================
-  // PARTICLE SYSTEM CREATION
-  // Sets up geometry, attributes, and shader material
-  // ============================================================
-  createParticleSystem() {
-    const geometry = new THREE.BufferGeometry();
-    
-    // Initial positions (start from ring state)
-    geometry.setAttribute('position', new THREE.BufferAttribute(this.states.positions0.slice(), 3));
-    
-    // Target positions for morphing (initially same as current)
-    geometry.setAttribute('a_targetPosition', new THREE.BufferAttribute(this.states.positions0.slice(), 3));
-    
-    // Random seed per particle for varied effects
-    const randomSeeds = new Float32Array(this.PARTICLE_COUNT);
-    for (let i = 0; i < this.PARTICLE_COUNT; i++) {
-      randomSeeds[i] = Math.random();
+
+  _scene(){
+    const refs=new Float32Array(this.count*2);
+    const positions=new Float32Array(this.count*3);
+    for(let y=0;y<this.size;y++){
+      for(let x=0;x<this.size;x++){
+        const i=y*this.size+x;
+        refs[i*2]=(x+.5)/this.size;
+        refs[i*2+1]=(y+.5)/this.size;
+      }
     }
-    geometry.setAttribute('a_randomSeed', new THREE.BufferAttribute(randomSeeds, 1));
-    
-    // Shader material with uniforms
-    this.material = new THREE.ShaderMaterial({
-      vertexShader,
-      fragmentShader,
-      uniforms: {
-        u_time: { value: 0 },
-        u_progress: { value: 0 },
-        u_morphSpeed: { value: 1.0 },
-        u_noiseIntensity: { value: 1.0 },
-        u_color1: { value: this.COLORS.neonBlue },
-        u_color2: { value: this.COLORS.deepPurple },
-        u_color3: { value: this.COLORS.vibrantMagenta },
-        u_opacity: { value: 1.0 }
-      },
-      transparent: true,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false,
-      depthTest: true
+    const geometry=new THREE.BufferGeometry();
+    geometry.setAttribute('position',new THREE.BufferAttribute(positions,3));
+    geometry.setAttribute('a_ref',new THREE.BufferAttribute(refs,2));
+
+    this.renderUniforms={
+      u_positionTex:{value:null},
+      u_velocityTex:{value:null},
+      u_time:{value:0},
+      u_bass:{value:0},
+      u_mid:{value:0},
+      u_cameraSpeed:{value:0},
+      u_focus:{value:this.focusDistance},
+      u_activeState:{value:0},
+      u_opacityMultiplier:{value:0.74}
+    };
+
+    this.material=new THREE.ShaderMaterial({
+      uniforms:this.renderUniforms,
+      vertexShader:particleVertexShader,
+      fragmentShader:particleFragmentShader,
+      transparent:true,
+      depthWrite:false,
+      blending:THREE.AdditiveBlending
     });
-    
-    this.particles = new THREE.Points(geometry, this.material);
-    this.scene.add(this.particles);
-    
-    // Add subtle ambient background particles
-    this.createBackgroundParticles();
+
+    this.points=new THREE.Points(geometry,this.material);
+    this.scene.add(this.points);
+    this._buildBackgroundStars();
   }
-  
-  // Background ambient particles for depth
-  createBackgroundParticles() {
-    const count = 5000;
-    const positions = new Float32Array(count * 3);
-    
-    for (let i = 0; i < count; i++) {
-      const i3 = i * 3;
-      positions[i3] = (Math.random() - 0.5) * 100;
-      positions[i3 + 1] = (Math.random() - 0.5) * 100;
-      positions[i3 + 2] = (Math.random() - 0.5) * 100;
+
+  _buildBackgroundStars(){
+    const count=6000;
+    const positions=new Float32Array(count*3);
+    const colors=new Float32Array(count*3);
+    for(let i=0;i<count;i++){
+      const i3=i*3;
+      const th=Math.random()*TWO_PI;
+      const ph=Math.acos(2*Math.random()-1);
+      const r=60+Math.random()*65;
+      positions[i3]=r*Math.sin(ph)*Math.cos(th);
+      positions[i3+1]=r*Math.sin(ph)*Math.sin(th);
+      positions[i3+2]=r*Math.cos(ph);
+      const b=0.08+Math.random()*0.18;
+      colors[i3]=b*0.4;
+      colors[i3+1]=b*0.48;
+      colors[i3+2]=b*0.8;
     }
-    
-    const bgGeometry = new THREE.BufferGeometry();
-    bgGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    
-    const bgMaterial = new THREE.PointsMaterial({
-      size: 0.08,
-      color: 0x4444ff,
-      transparent: true,
-      opacity: 0.3,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false
-    });
-    
-    this.bgParticles = new THREE.Points(bgGeometry, bgMaterial);
-    this.scene.add(this.bgParticles);
+    const g=new THREE.BufferGeometry();
+    g.setAttribute('position',new THREE.BufferAttribute(positions,3));
+    g.setAttribute('color',new THREE.BufferAttribute(colors,3));
+    this.bgStars=new THREE.Points(g,new THREE.PointsMaterial({
+      size:0.06,
+      vertexColors:true,
+      transparent:true,
+      opacity:0.26,
+      depthWrite:false,
+      blending:THREE.AdditiveBlending
+    }));
+    this.scene.add(this.bgStars);
   }
-  
-  // ============================================================
-  // STATE TRANSITIONS
-  // Smoothly interpolates particle positions between states
-  // ============================================================
-  transitionToState(stateIndex) {
-    if (this.isTransitioning || stateIndex === this.currentState) return;
-    
-    this.isTransitioning = true;
-    this.targetState = stateIndex;
-    
-    // Get target positions
-    const targetPositions = this.states[`positions${stateIndex}`];
-    
-    // Set target positions in geometry
-    const geo = this.particles.geometry;
-    geo.attributes.a_targetPosition.array.set(targetPositions);
-    geo.attributes.a_targetPosition.needsUpdate = true;
-    
-    // Store current positions as the start
-    const currentPositions = geo.attributes.position.array;
-    
-    // Reset progress
-    this.material.uniforms.u_progress.value = 0;
-    
-    // Animate progress using GSAP for smooth easing
-    gsap.to(this.material.uniforms.u_progress, {
-      value: 1,
-      duration: 2.0,
-      ease: 'power2.inOut',
-      onComplete: () => {
-        // Copy target positions to current positions
-        currentPositions.set(targetPositions);
-        geo.attributes.position.needsUpdate = true;
-        this.material.uniforms.u_progress.value = 0;
-        
-        // Update current state reference
-        this.currentState = stateIndex;
-        this.isTransitioning = false;
+
+  _postfx(){
+    this.composer=new THREE.EffectComposer(this.renderer);
+    this.renderPass=new THREE.RenderPass(this.scene,this.camera);
+    this.composer.addPass(this.renderPass);
+
+    this.bloom=new THREE.UnrealBloomPass(new THREE.Vector2(window.innerWidth,window.innerHeight),1.2,0.8,0.15);
+    this.bloom.threshold=0.15;
+    this.bloom.strength=1.2;
+    this.bloom.radius=0.8;
+    this.composer.addPass(this.bloom);
+
+    this.lensPass=new THREE.ShaderPass(lensPassShader);
+    this.composer.addPass(this.lensPass);
+
+    this.bokehPass=new THREE.BokehPass(this.scene,this.camera,{
+      focus:this.focusDistance,
+      aperture:0.00018,
+      maxblur:0.008,
+      width:window.innerWidth,
+      height:window.innerHeight
+    });
+    this.composer.addPass(this.bokehPass);
+
+    this.finalPass=new THREE.ShaderPass(finalPassShader);
+    this.finalPass.renderToScreen=true;
+    this.composer.addPass(this.finalPass);
+  }
+
+  _ui(){
+    document.querySelectorAll('.pill').forEach(p=>{
+      p.addEventListener('click',()=>this.goTo(parseInt(p.dataset.state,10)));
+    });
+
+    this.dom.audioBtn.addEventListener('click',()=>this._toggleAudio());
+    this._syncUI(0,true);
+  }
+
+  _audio(){
+    this.audioCtx=null;
+    this.analyser=null;
+    this.audioData=null;
+    this.masterGain=null;
+  }
+
+  async _toggleAudio(){
+    if(!this.audioCtx){
+      this._initAudio();
+    }
+    if(this.audioCtx.state==='suspended') await this.audioCtx.resume();
+    this.audioActive=true;
+    this.dom.audioBtn.classList.add('active');
+    this.dom.audioBtn.textContent='Audio Online';
+  }
+
+  _initAudio(){
+    const AC=window.AudioContext||window.webkitAudioContext;
+    this.audioCtx=new AC();
+    this.masterGain=this.audioCtx.createGain();
+    this.masterGain.gain.value=0.12;
+    this.analyser=this.audioCtx.createAnalyser();
+    this.analyser.fftSize=256;
+    this.audioData=new Uint8Array(this.analyser.frequencyBinCount);
+
+    const low=this.audioCtx.createOscillator();
+    low.type='sine';
+    low.frequency.value=46;
+    const lowGain=this.audioCtx.createGain();
+    lowGain.gain.value=0.18;
+
+    const high=this.audioCtx.createOscillator();
+    high.type='triangle';
+    high.frequency.value=180;
+    const highGain=this.audioCtx.createGain();
+    highGain.gain.value=0.04;
+
+    const lowLfo=this.audioCtx.createOscillator();
+    lowLfo.frequency.value=0.18;
+    const lowLfoGain=this.audioCtx.createGain();
+    lowLfoGain.gain.value=14;
+
+    const highLfo=this.audioCtx.createOscillator();
+    highLfo.frequency.value=0.12;
+    const highLfoGain=this.audioCtx.createGain();
+    highLfoGain.gain.value=36;
+
+    lowLfo.connect(lowLfoGain).connect(low.frequency);
+    highLfo.connect(highLfoGain).connect(high.frequency);
+
+    low.connect(lowGain).connect(this.masterGain);
+    high.connect(highGain).connect(this.masterGain);
+    this.masterGain.connect(this.analyser);
+    this.analyser.connect(this.audioCtx.destination);
+
+    low.start();
+    high.start();
+    lowLfo.start();
+    highLfo.start();
+  }
+
+  _playSweep(){
+    if(!this.audioCtx) return;
+    const osc=this.audioCtx.createOscillator();
+    const gain=this.audioCtx.createGain();
+    const pan=this.audioCtx.createStereoPanner();
+    const now=this.audioCtx.currentTime;
+    osc.type='sawtooth';
+    osc.frequency.setValueAtTime(120,now);
+    osc.frequency.exponentialRampToValueAtTime(1240,now+1.3);
+    gain.gain.setValueAtTime(0.0001,now);
+    gain.gain.exponentialRampToValueAtTime(0.08,now+0.05);
+    gain.gain.exponentialRampToValueAtTime(0.0001,now+1.4);
+    pan.pan.setValueAtTime(-0.85,now);
+    pan.pan.linearRampToValueAtTime(0.85,now+1.2);
+    osc.connect(gain).connect(pan).connect(this.masterGain);
+    osc.start(now);
+    osc.stop(now+1.5);
+  }
+
+  _readAudio(){
+    if(this.audioActive&&this.analyser){
+      this.analyser.getByteFrequencyData(this.audioData);
+      let low=0,mid=0;
+      for(let i=0;i<10;i++) low+=this.audioData[i];
+      for(let i=14;i<40;i++) mid+=this.audioData[i];
+      this.audioBass=THREE.MathUtils.lerp(this.audioBass,(low/10)/255,0.12);
+      this.audioMid=THREE.MathUtils.lerp(this.audioMid,(mid/26)/255,0.14);
+    }else{
+      const t=this.clock.elapsedTime;
+      this.audioBass=0.08+Math.sin(t*1.2)*0.03;
+      this.audioMid=0.05+Math.sin(t*2.2+1.4)*0.025;
+    }
+  }
+
+  goTo(idx){
+    if(this.animating||idx===this.curState) return;
+    this.animating=true;
+    this.targetState=idx;
+    this.velocityUniforms.u_target.value=this.stateTextures[idx];
+    this.velocityUniforms.u_attractor.value.set(...this.views[idx].attractor);
+    this.renderUniforms.u_activeState.value=idx;
+
+    gsap.killTweensOf(this.velocityUniforms.u_transition);
+    gsap.fromTo(this.velocityUniforms.u_transition,{value:0.0},{
+      value:1.0,
+      duration:1.5,
+      ease:'expo.out',
+      yoyo:true,
+      repeat:1
+    });
+
+    gsap.to(this.velocityUniforms.u_attractorStrength,{
+      value:1.35,
+      duration:1.4,
+      ease:'expo.out',
+      yoyo:true,
+      repeat:1
+    });
+
+    gsap.to(this.renderUniforms.u_opacityMultiplier,{
+      value:0.94,
+      duration:1.1,
+      ease:'power2.out',
+      yoyo:true,
+      repeat:1
+    });
+
+    const view=this.views[idx];
+    gsap.to(this.camera.position,{
+      x:view.pos[0],
+      y:view.pos[1],
+      z:view.pos[2],
+      duration:3.2,
+      ease:'expo.inOut',
+      onComplete:()=>{
+        this.curState=idx;
+        this.animating=false;
       }
     });
-    
-    // Animate camera to new position
-    this.animateCamera(stateIndex);
-    
-    // Update UI
-    this.updateUI(stateIndex);
+
+    gsap.to(this,{
+      focusDistance:view.focus,
+      duration:3.2,
+      ease:'expo.inOut'
+    });
+
+    this._syncUI(idx,false);
+    this._playSweep();
   }
-  
-  // ============================================================
-  // CAMERA ANIMATION
-  // Cinematic camera movement between states
-  // ============================================================
-  animateCamera(stateIndex) {
-    const camState = this.cameraStates[stateIndex];
-    const targetPos = new THREE.Vector3(...camState.pos);
-    const targetLookAt = new THREE.Vector3(...camState.lookAt);
-    
-    // Animate camera position
-    gsap.to(this.camera.position, {
-      x: targetPos.x,
-      y: targetPos.y,
-      z: targetPos.z,
-      duration: 2.5,
-      ease: 'power3.inOut',
-      onUpdate: () => {
-        this.camera.lookAt(targetLookAt);
+
+  _scrambleText(el,target){
+    const chars='01X#%<>/|+*ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    let frame=0;
+    const total=20;
+    gsap.killTweensOf(el);
+    const update=()=>{
+      const progress=frame/total;
+      const fixed=Math.floor(target.length*progress);
+      let out='';
+      for(let i=0;i<target.length;i++){
+        out+=i<fixed?target[i]:chars[Math.floor(Math.random()*chars.length)];
       }
-    });
-  }
-  
-  // ============================================================
-  // UI MANAGEMENT
-  // ============================================================
-  setupUI() {
-    // Navigation dots
-    const dots = document.querySelectorAll('.nav-dot');
-    dots.forEach(dot => {
-      dot.addEventListener('click', () => {
-        const state = parseInt(dot.dataset.state);
-        this.transitionToState(state);
-      });
-    });
-    
-    // Keyboard navigation
-    window.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
-        const next = (this.currentState + 1) % 3;
-        this.transitionToState(next);
-      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-        const prev = (this.currentState + 2) % 3;
-        this.transitionToState(prev);
+      el.textContent=out;
+      frame++;
+      if(frame<=total){
+        gsap.delayedCall(0.035,update);
+      }else{
+        gsap.to(el,{duration:0.2,text:target,ease:'none'});
       }
-    });
-    
-    // Initial state display
-    this.updateUI(0);
+    };
+    update();
   }
-  
-  updateUI(stateIndex) {
-    // Update state info panels
-    document.querySelectorAll('.state-info').forEach((el, i) => {
-      el.classList.toggle('active', i === stateIndex);
-    });
-    
-    // Update nav dots
-    document.querySelectorAll('.nav-dot').forEach((el, i) => {
-      el.classList.toggle('active', i === stateIndex);
-    });
-    
-    // Update stats
-    document.getElementById('stat-state').textContent = this.stateLabels[stateIndex];
-  }
-  
-  // ============================================================
-  // RESIZE HANDLER
-  // ============================================================
-  onResize() {
-    const width = window.innerWidth;
-    const height = window.innerHeight;
-    
-    this.camera.aspect = width / height;
-    this.camera.updateProjectionMatrix();
-    this.renderer.setSize(width, height);
-  }
-  
-  // ============================================================
-  // ANIMATION LOOP
-  // ============================================================
-  animate() {
-    requestAnimationFrame(() => this.animate());
-    
-    const elapsed = this.clock.getElapsedTime();
-    const delta = this.clock.getDelta();
-    
-    // Update shader uniforms
-    this.material.uniforms.u_time.value = elapsed;
-    
-    // Smooth mouse following for parallax
-    this.mouse.x += (this.targetMouse.x - this.mouse.x) * 0.05;
-    this.mouse.y += (this.targetMouse.y - this.mouse.y) * 0.05;
-    
-    // Subtle camera parallax based on mouse
-    if (!this.isTransitioning) {
-      const camState = this.cameraStates[this.currentState];
-      this.camera.position.x = camState.pos[0] + this.mouse.x * 1.5;
-      this.camera.position.y = camState.pos[1] + this.mouse.y * 1.0;
-      this.camera.lookAt(new THREE.Vector3(...camState.lookAt));
+
+  _syncUI(idx,instant){
+    document.querySelectorAll('.pill').forEach((p,i)=>p.classList.toggle('active',i===idx));
+    this.dom.state.textContent=this.tags[idx];
+    const focusText=this.views[idx].focus.toFixed(2);
+    this.dom.focus.textContent=focusText;
+    for(let i=0;i<6;i++){
+      const el=document.getElementById('label-'+i);
+      const head=el.querySelector('h1');
+      if(i===idx){
+        gsap.to(el,{opacity:1,y:0,duration:instant?0:0.9,ease:'power3.out',delay:instant?0:0.25});
+        if(!instant) this._scrambleText(head,head.dataset.text);
+        else head.textContent=head.dataset.text;
+      }else{
+        gsap.to(el,{opacity:0,y:24,duration:0.45,ease:'power2.in'});
+      }
     }
-    
-    // Slow rotation for the main particle system
-    this.particles.rotation.y += 0.001;
-    
-    // Background particles rotation
-    if (this.bgParticles) {
-      this.bgParticles.rotation.y += 0.0002;
-      this.bgParticles.rotation.x += 0.0001;
+  }
+
+  _updateTelemetry(){
+    this.dom.bass.textContent=this.audioBass.toFixed(2);
+    this.dom.mid.textContent=this.audioMid.toFixed(2);
+    this.dom.mx.textContent=this.mouseWorld.x.toFixed(2);
+    this.dom.my.textContent=this.mouseWorld.y.toFixed(2);
+    this.dom.mz.textContent=this.mouseWorld.z.toFixed(2);
+    this.dom.cspd.textContent=this.cameraVelocity.toFixed(2);
+    this.dom.mode.textContent=this.mouseDown?'BLACKHOLE':'HOVER';
+    this.dom.ray.textContent=this.mouseDown?'VORTEX':'MAGNETIC';
+  }
+
+  _updateCamera(t){
+    const v=this.views[this.targetState];
+    const floatX=Math.sin(t*0.18)*0.35+Math.sin(t*0.07)*0.18;
+    const floatY=Math.cos(t*0.14)*0.22+Math.cos(t*0.05)*0.1;
+    const floatZ=Math.sin(t*0.09)*0.16;
+    const parallaxX=this.mouseNdc.x*0.9;
+    const parallaxY=this.mouseNdc.y*0.5;
+
+    if(!this.animating){
+      this.camera.position.x=THREE.MathUtils.lerp(this.camera.position.x,v.pos[0]+floatX+parallaxX,0.035);
+      this.camera.position.y=THREE.MathUtils.lerp(this.camera.position.y,v.pos[1]+floatY+parallaxY,0.035);
+      this.camera.position.z=THREE.MathUtils.lerp(this.camera.position.z,v.pos[2]+floatZ,0.035);
     }
-    
-    // Render
-    this.renderer.render(this.scene, this.camera);
-    
-    // FPS counter
-    this.frameCount++;
-    const now = performance.now();
-    if (now - this.lastFPSTime >= 1000) {
-      this.currentFPS = this.frameCount;
-      this.frameCount = 0;
-      this.lastFPSTime = now;
-      document.getElementById('stat-fps').textContent = this.currentFPS;
+
+    const camLook=new THREE.Vector3(...v.look);
+    camLook.x+=this.mouseNdc.x*0.8;
+    camLook.y+=this.mouseNdc.y*0.4;
+    this.camera.lookAt(camLook);
+
+    this.cameraVelocity=this.camera.position.distanceTo(this.cameraPrev)*12;
+    this.cameraPrev.copy(this.camera.position);
+  }
+
+  _loop(){
+    requestAnimationFrame(()=>this._loop());
+
+    const dt=Math.min(this.clock.getDelta(),0.033);
+    const t=this.clock.elapsedTime;
+
+    this._readAudio();
+    this._updateCamera(t);
+    this._updateMouseWorld();
+
+    this.dragValue=THREE.MathUtils.lerp(this.dragValue,this.mouseDown?1:0,0.08);
+    this.velocityUniforms.u_time.value=t;
+    this.velocityUniforms.u_delta.value=dt;
+    this.positionUniforms.u_delta.value=dt;
+    this.velocityUniforms.u_audioBass.value=this.audioBass;
+    this.velocityUniforms.u_audioMid.value=this.audioMid;
+    this.velocityUniforms.u_coreSpin.value=1.2+(this.curState===0?1.1:0.15);
+    this.velocityUniforms.u_mousePos.value.copy(this.mouseWorld);
+    this.velocityUniforms.u_mouseVelocity.value.copy(this.mouseVelocity);
+    this.velocityUniforms.u_mouseMode.value=this.mouseDown?2:1;
+    this.velocityUniforms.u_drag.value=this.dragValue;
+
+    this.gpu.compute();
+
+    this.renderUniforms.u_positionTex.value=this.gpu.getCurrentRenderTarget(this.positionVariable).texture;
+    this.renderUniforms.u_velocityTex.value=this.gpu.getCurrentRenderTarget(this.velocityVariable).texture;
+    this.renderUniforms.u_time.value=t;
+    this.renderUniforms.u_bass.value=this.audioBass;
+    this.renderUniforms.u_mid.value=this.audioMid;
+    this.renderUniforms.u_cameraSpeed.value=Math.min(this.cameraVelocity*0.16,1.8);
+    this.renderUniforms.u_focus.value=this.focusDistance;
+
+    this.lensPass.uniforms.u_time.value=t*1000;
+    this.bokehPass.uniforms['focus'].value=this.focusDistance;
+
+    this.points.rotation.y+=this.curState===0?0.0018+this.audioBass*0.01:0.00045;
+    this.bgStars.rotation.y+=0.00005;
+    this.bgStars.rotation.x+=0.00002;
+
+    this.composer.render(dt);
+
+    this._updateTelemetry();
+    this.fCnt++;
+    const now=performance.now();
+    if(now-this.fT>=1000){
+      this.fps=this.fCnt;
+      this.fCnt=0;
+      this.fT=now;
+      this.dom.fps.textContent=String(this.fps);
     }
   }
 }
 
-// ============================================================
-// INITIALIZE APPLICATION
-// ============================================================
-window.addEventListener('DOMContentLoaded', () => {
-  const app = new CosmicParticleSystem();
-  
-  // Expose transitionToState globally for console/UI access
-  window.transitionToState = (index) => app.transitionToState(index);
-  
-  // Auto-rotate through states for demo
-  let autoRotateTimer = setInterval(() => {
-    if (!app.isTransitioning) {
-      const nextState = (app.currentState + 1) % 3;
-      app.transitionToState(nextState);
-    }
-  }, 8000);
-  
-  // Stop auto-rotate on any user interaction
-  const stopAutoRotate = () => {
-    clearInterval(autoRotateTimer);
-    document.removeEventListener('click', stopAutoRotate);
-    document.removeEventListener('keydown', stopAutoRotate);
+window.addEventListener('DOMContentLoaded',()=>{
+  const app=new CosmicPortfolio();
+  window.transitionToState=idx=>app.goTo(idx);
+  let auto=setInterval(()=>{
+    if(!app.animating) app.goTo((app.curState+1)%6);
+  },9500);
+  const stop=()=>{
+    clearInterval(auto);
+    document.removeEventListener('click',stop);
+    document.removeEventListener('keydown',stop);
   };
-  document.addEventListener('click', stopAutoRotate);
-  document.addEventListener('keydown', stopAutoRotate);
+  document.addEventListener('click',stop);
+  document.addEventListener('keydown',stop);
 });
 </script>
 </body>
