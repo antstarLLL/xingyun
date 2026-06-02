@@ -17,6 +17,7 @@
     --gold:#ffaa00;
     --white:rgba(255,255,255,.84);
     --muted:rgba(255,255,255,.34);
+    --left-rail-width:420px;
   }
 
   *{margin:0;padding:0;box-sizing:border-box}
@@ -141,7 +142,13 @@
     transition:color .45s ease;
   }
 
-  .telemetry-left{top:26px;left:72px;min-width:260px}
+  .telemetry-left{
+    left:34px;
+    bottom:108px;
+    top:auto;
+    min-width:300px;
+    width:min(320px,calc(100vw - 68px));
+  }
   .telemetry-right{top:26px;right:72px;min-width:260px;text-align:right}
   .telemetry-right div{display:flex;justify-content:space-between;gap:16px}
   .telemetry-left div,
@@ -171,11 +178,12 @@
 
   .scene-label{
     position:absolute;
-    left:7.5%;
-    bottom:14%;
+    left:clamp(460px,42vw,620px);
+    bottom:clamp(108px,14vh,150px);
     opacity:0;
     transform:translateY(24px);
-    max-width:480px;
+    width:min(480px,36vw);
+    max-width:calc(100vw - 120px);
     transform-origin:left bottom;
   }
   .scene-label .eyebrow{
@@ -217,6 +225,163 @@
     color:rgba(255,255,255,.34);
   }
 
+  .brand-block{
+    position:fixed;
+    left:34px;
+    top:34px;
+    z-index:22;
+    width:min(var(--left-rail-width),calc(100vw - 68px));
+    max-width:420px;
+    pointer-events:auto;
+  }
+  .brand-mark{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    margin-bottom:18px;
+  }
+  .brand-mark .sigil{
+    width:44px;
+    height:44px;
+    border:1px solid var(--line);
+    background:
+      radial-gradient(circle at 50% 50%,rgba(255,255,255,.18),transparent 60%),
+      linear-gradient(135deg,rgba(0,240,255,.18),rgba(255,0,127,.12));
+    position:relative;
+  }
+  .brand-mark .sigil::before,
+  .brand-mark .sigil::after{
+    content:"";
+    position:absolute;
+    inset:9px;
+    border:1px solid rgba(255,255,255,.12);
+  }
+  .brand-mark .sigil::after{
+    inset:17px;
+    background:var(--cyan);
+    opacity:.55;
+    border:none;
+    box-shadow:0 0 18px rgba(0,240,255,.25);
+  }
+  .brand-copy{
+    font-family:'Space Grotesk',sans-serif;
+    text-transform:uppercase;
+  }
+  .brand-copy .eyebrow{
+    font-size:.52rem;
+    letter-spacing:.45em;
+    color:rgba(255,255,255,.4);
+    margin-bottom:.35rem;
+  }
+  .brand-copy .name{
+    font-size:1.2rem;
+    letter-spacing:.28em;
+    color:rgba(255,255,255,.9);
+  }
+  .brand-copy .module{
+    font-size:.58rem;
+    letter-spacing:.34em;
+    color:var(--cyan);
+    margin-top:.35rem;
+  }
+  .brand-intro{
+    max-width:100%;
+    font-size:.84rem;
+    line-height:1.75;
+    letter-spacing:.08em;
+    color:rgba(255,255,255,.5);
+  }
+  .brand-cta{
+    margin-top:18px;
+    display:flex;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+  .cta{
+    appearance:none;
+    border:1px solid rgba(255,255,255,.1);
+    background:rgba(8,12,22,.5);
+    color:rgba(255,255,255,.82);
+    padding:12px 16px;
+    font-family:'Space Grotesk',sans-serif;
+    font-size:.56rem;
+    letter-spacing:.26em;
+    text-transform:uppercase;
+    cursor:pointer;
+    backdrop-filter:blur(10px);
+    transition:border-color .35s ease,color .35s ease,background .35s ease,transform .35s ease,box-shadow .35s ease;
+  }
+  .cta:hover{
+    transform:translateY(-1px);
+    border-color:var(--line);
+    color:var(--cyan);
+    box-shadow:0 0 22px rgba(0,240,255,.08);
+  }
+  .cta.primary{
+    border-color:var(--line);
+    color:var(--cyan);
+    background:linear-gradient(135deg,rgba(0,240,255,.08),rgba(255,255,255,.02));
+  }
+
+  .chapter-card{
+    position:fixed;
+    left:34px;
+    top:272px;
+    z-index:21;
+    width:min(380px,calc(100vw - 68px));
+    border:1px solid var(--line);
+    background:linear-gradient(180deg,rgba(8,12,21,.66),rgba(7,12,21,.28));
+    backdrop-filter:blur(12px);
+    padding:18px 18px 16px;
+    pointer-events:none;
+  }
+  .chapter-top{
+    display:flex;
+    justify-content:space-between;
+    gap:16px;
+    align-items:flex-start;
+  }
+  .chapter-kicker,
+  .chapter-code{
+    font-family:'Space Grotesk',sans-serif;
+    text-transform:uppercase;
+    letter-spacing:.34em;
+    font-size:.52rem;
+    color:rgba(255,255,255,.42);
+  }
+  .chapter-code{color:var(--cyan)}
+  .chapter-title{
+    margin-top:.95rem;
+    font-family:'Space Grotesk',sans-serif;
+    font-size:1.3rem;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:rgba(255,255,255,.92);
+  }
+  .chapter-text{
+    margin-top:.9rem;
+    font-size:.76rem;
+    line-height:1.75;
+    letter-spacing:.09em;
+    color:rgba(255,255,255,.46);
+  }
+  .chapter-tags{
+    margin-top:14px;
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  .tag{
+    border:1px solid rgba(255,255,255,.08);
+    padding:7px 9px;
+    font-family:'Space Grotesk',sans-serif;
+    font-size:.48rem;
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    color:rgba(255,255,255,.56);
+    background:rgba(255,255,255,.02);
+  }
+
   .nav-pills{
     position:fixed;
     top:50%;
@@ -227,6 +392,7 @@
     gap:18px;
     z-index:20;
     pointer-events:auto;
+    transition:opacity .45s ease;
   }
   .pill{
     width:4px;
@@ -277,6 +443,7 @@
     padding:11px 14px;
     cursor:pointer;
     backdrop-filter:blur(10px);
+    transition:opacity .45s ease,border-color .35s ease,color .35s ease;
   }
   .audio-button.active{
     border-color:rgba(0,240,255,.28);
@@ -294,11 +461,33 @@
     letter-spacing:.28em;
     text-transform:uppercase;
     color:rgba(255,255,255,.24);
+    transition:opacity .45s ease;
+  }
+
+  @media (max-width:1360px), (max-height:860px){
+    .telemetry-left{display:none}
+    .chapter-card{display:none}
+    .scene-label{
+      left:34px;
+      bottom:128px;
+      width:min(460px,calc(100vw - 120px));
+      max-width:min(460px,calc(100vw - 120px));
+    }
   }
 
   @media (max-width:900px){
-    .telemetry-right,.telemetry-left{display:none}
-    .scene-label{left:24px;right:24px;bottom:96px}
+    .telemetry-right,.telemetry-left,.chapter-card{display:none}
+    .brand-block{left:18px;top:18px;max-width:calc(100vw - 36px);width:calc(100vw - 36px)}
+    .brand-intro{display:none}
+    .brand-cta{margin-top:14px;gap:10px}
+    .cta{padding:10px 12px;font-size:.5rem;letter-spacing:.2em}
+    .scene-label{
+      left:24px;
+      right:24px;
+      bottom:108px;
+      width:auto;
+      max-width:calc(100vw - 48px);
+    }
     .nav-pills{right:18px}
     .status-bar{gap:16px;bottom:18px}
     .audio-button{right:18px;bottom:74px}
@@ -338,6 +527,36 @@
     <div><span>CAM SPD</span><span class="value" id="s-cspd">0.00</span></div>
     <div><span>PATTERN</span><span class="value" id="s-pattern">CORE</span></div>
     <div><span>MODE</span><span class="value" id="s-mode">HOVER</span></div>
+  </div>
+
+  <div class="brand-block" id="brand-block">
+    <div class="brand-mark">
+      <div class="sigil"></div>
+      <div class="brand-copy">
+        <div class="eyebrow">Immersive Signal Archive</div>
+        <div class="name">XINGYUN</div>
+        <div class="module" id="brand-module">Nebula Engine</div>
+      </div>
+    </div>
+    <div class="brand-intro" id="brand-intro">A cinematic particle interface where fluid intelligence, protocol systems and molecular narratives resolve into one continuous reactive universe.</div>
+    <div class="brand-cta">
+      <button class="cta primary" id="cta-explore">Enter Sequence</button>
+      <button class="cta" id="cta-focus">Jump To DNA</button>
+    </div>
+  </div>
+
+  <div class="chapter-card" id="chapter-card">
+    <div class="chapter-top">
+      <div class="chapter-kicker" id="chapter-kicker">Origin / Core Field</div>
+      <div class="chapter-code" id="chapter-code">M-00</div>
+    </div>
+    <div class="chapter-title" id="chapter-title">Galactic Source Reactor</div>
+    <div class="chapter-text" id="chapter-text">Dense central ignition, accretion spin and cold nebular drift define the opening language of the system.</div>
+    <div class="chapter-tags" id="chapter-tags">
+      <span class="tag">Core</span>
+      <span class="tag">Accretion</span>
+      <span class="tag">Nebula</span>
+    </div>
   </div>
 
   <div class="scene-label" id="label-0">
@@ -598,6 +817,12 @@ void main(){
     float facet=sin((pos.x+pos.y+pos.z)*1.25+u_time*1.8);
     pos+=sign(pos+0.001)*facet*0.08;
     pos*=1.0+sin(u_time*1.1+radial*0.3)*0.015;
+  }else if(u_activeState>3.5&&u_activeState<4.5){
+    float helixPhase=atan(pos.z,pos.x)*2.0+pos.y*0.75;
+    float helixPulse=sin(helixPhase-u_time*2.4);
+    float helixCore=smoothstep(2.1,6.8,radial)*(1.0-smoothstep(6.8,9.0,radial));
+    pos.xz*=1.0+helixPulse*0.018*helixCore;
+    pos.y+=sin(helixPhase*1.4+u_time*1.8)*0.22*helixCore;
   }
 
   pos.y+=sin(u_time*1.4+radial*0.55)*u_bass*0.18*density;
@@ -684,6 +909,11 @@ void main(){
   color=mix(color,stateTint(u_activeState),0.35);
   color=mix(color,cyan,clamp(v_speed*0.35+u_transitionPulse*0.22,0.0,0.42));
   color=mix(color,gold,u_transitionPulse*0.18*(0.4+coreMask));
+  if(u_activeState>3.5&&u_activeState<4.5){
+    float helixBand=sin(atan(v_worldPos.z,v_worldPos.x)*2.0+v_worldPos.y*0.7-u_time*1.6)*0.5+0.5;
+    color=mix(color,magenta,0.24+helixBand*0.24);
+    color=mix(color,cyan,smoothstep(3.2,4.8,radial)*(1.0-smoothstep(5.6,7.8,radial))*0.16);
+  }
 
   float denseHeat=pow(coreMask,2.8)*(1.4+u_bass*2.2+u_transitionPulse*1.8);
   float dustScatter=(0.18+0.22*n+u_mid*0.1)*(0.45+dustMask*0.9);
@@ -780,6 +1010,10 @@ class CosmicPortfolio{
     this.cameraVelocity=0;
     this.transitionPulse=0;
     this.hudPulse=0;
+    this.autoTimer=null;
+    this.autoDurations=[12000,8600,9200,9000,8600,9800];
+    this.userInterrupted=false;
+    this.introComplete=false;
     this.cameraPrev=new THREE.Vector3();
     this.focusDistance=18;
     this.clock=new THREE.Clock();
@@ -791,18 +1025,18 @@ class CosmicPortfolio{
       {pos:[0,2.6,28],look:[0,0,0],focus:21.5,attractor:[0,0,0]},
       {pos:[9.8,5.1,15.6],look:[0,0.3,0],focus:13.2,attractor:[0,1.2,0]},
       {pos:[-5.2,5.6,20.6],look:[0,0.2,0],focus:15.6,attractor:[0,0,0]},
-      {pos:[10.4,3.4,13.8],look:[0,0.8,0],focus:12.8,attractor:[0,4.2,0]},
+      {pos:[12.6,2.9,11.2],look:[0,1.6,0],focus:11.6,attractor:[0,4.8,0]},
       {pos:[0,4.8,23],look:[0,0,0],focus:18.5,attractor:[0,0,0]}
     ];
     this.tags=['00','01','02','03','04','05'];
     this.stateTitles=['NEBULA ENGINE','COMPUTE GRID','NEURAL BRAIN','WEB3 MATRIX','DNA HELIX','COSMIC LOOP'];
     this.stateMeta=[
-      {sector:'ORIGIN',pattern:'CORE',accent:'#00f0ff',line:'rgba(0,240,255,.16)',panel:'linear-gradient(180deg,rgba(10,16,28,.65),rgba(7,12,21,.28))',bg:'radial-gradient(circle at 50% 45%,#07111f 0%,#040812 38%,#02050a 100%)'},
-      {sector:'INFRA',pattern:'RIPPLE',accent:'#7cf8ff',line:'rgba(124,248,255,.18)',panel:'linear-gradient(180deg,rgba(8,20,28,.64),rgba(6,13,18,.28))',bg:'radial-gradient(circle at 50% 45%,#04141d 0%,#061019 38%,#02050a 100%)'},
-      {sector:'INTEL',pattern:'SYNAPSE',accent:'#a76cff',line:'rgba(167,108,255,.18)',panel:'linear-gradient(180deg,rgba(20,12,36,.66),rgba(10,8,22,.28))',bg:'radial-gradient(circle at 50% 45%,#130b22 0%,#090713 40%,#02050a 100%)'},
-      {sector:'CHAIN',pattern:'LATTICE',accent:'#79d8ff',line:'rgba(121,216,255,.18)',panel:'linear-gradient(180deg,rgba(8,16,36,.66),rgba(6,10,18,.28))',bg:'radial-gradient(circle at 50% 45%,#071326 0%,#050a14 42%,#02050a 100%)'},
-      {sector:'BIO',pattern:'HELIX',accent:'#ff54b3',line:'rgba(255,84,179,.18)',panel:'linear-gradient(180deg,rgba(30,10,26,.66),rgba(15,7,18,.28))',bg:'radial-gradient(circle at 50% 45%,#1a0a1a 0%,#0c0712 42%,#02050a 100%)'},
-      {sector:'LOOP',pattern:'RETURN',accent:'#ffb24d',line:'rgba(255,178,77,.18)',panel:'linear-gradient(180deg,rgba(28,16,8,.66),rgba(15,10,7,.28))',bg:'radial-gradient(circle at 50% 45%,#1f1208 0%,#100810 42%,#02050a 100%)'}
+      {sector:'ORIGIN',pattern:'CORE',accent:'#00f0ff',line:'rgba(0,240,255,.16)',panel:'linear-gradient(180deg,rgba(10,16,28,.65),rgba(7,12,21,.28))',bg:'radial-gradient(circle at 50% 45%,#07111f 0%,#040812 38%,#02050a 100%)',module:'Nebula Engine',kicker:'Origin / Core Field',code:'M-00',title:'Galactic Source Reactor',copy:'Dense central ignition, accretion spin and cold nebular drift define the opening language of the system.',intro:'A cinematic particle interface where fluid intelligence, protocol systems and molecular narratives resolve into one continuous reactive universe.',tags:['Core','Accretion','Nebula']},
+      {sector:'INFRA',pattern:'RIPPLE',accent:'#7cf8ff',line:'rgba(124,248,255,.18)',panel:'linear-gradient(180deg,rgba(8,20,28,.64),rgba(6,13,18,.28))',bg:'radial-gradient(circle at 50% 45%,#04141d 0%,#061019 38%,#02050a 100%)',module:'Compute Grid',kicker:'Infrastructure / Field',code:'M-01',title:'Distributed Compute Surface',copy:'The swarm expands into concentric engineering lanes, opening a negative-space canvas for systems, logistics and machine orchestration.',intro:'From gravitational origin, the platform fans outward into resilient, distributed computation surfaces.',tags:['Compute','Grid','Routing']},
+      {sector:'INTEL',pattern:'SYNAPSE',accent:'#a76cff',line:'rgba(167,108,255,.18)',panel:'linear-gradient(180deg,rgba(20,12,36,.66),rgba(10,8,22,.28))',bg:'radial-gradient(circle at 50% 45%,#130b22 0%,#090713 40%,#02050a 100%)',module:'Neural Brain',kicker:'Intelligence / Mesh',code:'M-02',title:'Cognitive Signal Topology',copy:'Particles converge into bilateral neural tissue, pulsing through synaptic rings and internal channels of living inference.',intro:'Intelligence appears as a breathing network where memory, patterning and motion cohere in volumetric form.',tags:['Neural','Inference','Synapse']},
+      {sector:'CHAIN',pattern:'LATTICE',accent:'#79d8ff',line:'rgba(121,216,255,.18)',panel:'linear-gradient(180deg,rgba(8,16,36,.66),rgba(6,10,18,.28))',bg:'radial-gradient(circle at 50% 45%,#071326 0%,#050a14 42%,#02050a 100%)',module:'Web3 Matrix',kicker:'Protocol / Lattice',code:'M-03',title:'Consensus Crystal Frame',copy:'A hollow crystalline core holds shell, axis and face structures together as if protocol consensus had materialized into architecture.',intro:'Protocol logic becomes spatial: rigid, luminous and precise without losing fluid cinematic motion.',tags:['Consensus','Lattice','Chain']},
+      {sector:'BIO',pattern:'HELIX',accent:'#ff54b3',line:'rgba(255,84,179,.18)',panel:'linear-gradient(180deg,rgba(30,10,26,.66),rgba(15,7,18,.28))',bg:'radial-gradient(circle at 50% 45%,#1a0a1a 0%,#0c0712 42%,#02050a 100%)',module:'DNA Helix',kicker:'Organic / Sequence',code:'M-04',title:'Molecular Memory Column',copy:'Twin strands, bridge pairs and outer grooves climb vertically as a readable biological signal tower.',intro:'The system bends from protocol into biology, revealing a luminous molecular scaffold with explicit structural rhythm.',tags:['Helix','Genetics','Memory']},
+      {sector:'LOOP',pattern:'RETURN',accent:'#ffb24d',line:'rgba(255,178,77,.18)',panel:'linear-gradient(180deg,rgba(28,16,8,.66),rgba(15,10,7,.28))',bg:'radial-gradient(circle at 50% 45%,#1f1208 0%,#100810 42%,#02050a 100%)',module:'Cosmic Loop',kicker:'Return / Recursion',code:'M-05',title:'Recursive Stellar Reset',copy:'The sequence releases, cools and folds back into the origin, ready to reopen the entire portfolio cycle from the source.',intro:'Every chapter resolves back into origin, turning the experience into a repeatable signal ritual rather than a linear deck.',tags:['Loop','Reset','Return']}
     ];
     this._cacheDom();
     this._progress(4);
@@ -848,7 +1082,21 @@ class CosmicPortfolio{
       wipe:document.getElementById('transition-wipe'),
       panels:Array.from(document.querySelectorAll('.panel,.status-bar')),
       brackets:Array.from(document.querySelectorAll('.bracket')),
-      pills:Array.from(document.querySelectorAll('.pill'))
+      pills:Array.from(document.querySelectorAll('.pill')),
+      nav:document.getElementById('nav'),
+      hint:document.querySelector('.hint'),
+      labels:Array.from(document.querySelectorAll('.scene-label')),
+      brandBlock:document.getElementById('brand-block'),
+      brandModule:document.getElementById('brand-module'),
+      brandIntro:document.getElementById('brand-intro'),
+      chapterCard:document.getElementById('chapter-card'),
+      chapterKicker:document.getElementById('chapter-kicker'),
+      chapterCode:document.getElementById('chapter-code'),
+      chapterTitle:document.getElementById('chapter-title'),
+      chapterText:document.getElementById('chapter-text'),
+      chapterTags:document.getElementById('chapter-tags'),
+      ctaExplore:document.getElementById('cta-explore'),
+      ctaFocus:document.getElementById('cta-focus')
     };
     this.dom.count.textContent=String(this.count);
   }
@@ -1097,43 +1345,58 @@ class CosmicPortfolio{
 
   _genHelix(n){
     const p=new Float32Array(n*3);
-    const half=Math.floor(n/2);
-    const strandCount=Math.floor(n*0.38);
-    const bridgeCount=Math.floor(n*0.34);
-    const haloStart=strandCount*2+bridgeCount;
-    const height=28;
-    const radius=4.75;
+    const strandCount=Math.floor(n*0.32);
+    const bridgeCount=Math.floor(n*0.26);
+    const grooveCount=Math.floor(n*0.24);
+    const haloStart=strandCount*2+bridgeCount+grooveCount;
+    const height=34;
+    const radius=5.3;
+    const turns=8.5;
     for(let i=0;i<n;i++){
       const i3=i*3;
       if(i<strandCount*2){
         const strand=i<strandCount?0:1;
         const li=i<strandCount?i:i-strandCount;
         const t=li/Math.max(1,strandCount-1);
-        const turns=11.0;
-        const a=t*Math.PI*turns+strand*Math.PI;
+        const a=t*TWO_PI*turns+strand*Math.PI;
         const y=(t-.5)*height;
-        const rr=radius+Math.sin(t*18.0)*0.12+(Math.random()-.5)*0.08;
+        const tube=(Math.floor(li/3)%3-1)*0.22;
+        const rr=radius+tube+Math.sin(t*TWO_PI*turns*0.5)*0.08+(Math.random()-.5)*0.06;
+        p[i3]=Math.cos(a)*rr;
+        p[i3+1]=y+(Math.random()-.5)*0.1;
+        p[i3+2]=Math.sin(a)*rr;
+      }else if(i<strandCount*2+bridgeCount){
+        const bi=i-strandCount*2;
+        const t=bi/Math.max(1,bridgeCount-1);
+        const step=Math.round(t*turns*18.0)/(turns*18.0);
+        const a=step*TWO_PI*turns;
+        const y=(step-.5)*height+(Math.random()-.5)*0.16;
+        const bridgeMix=Math.random();
+        const lx=Math.cos(a)*radius;
+        const lz=Math.sin(a)*radius;
+        const rx=Math.cos(a+Math.PI)*radius;
+        const rz=Math.sin(a+Math.PI)*radius;
+        const nx=Math.cos(a+Math.PI*0.5)*((Math.random()-.5)*0.28);
+        const nz=Math.sin(a+Math.PI*0.5)*((Math.random()-.5)*0.28);
+        p[i3]=lx+(rx-lx)*bridgeMix+nx;
+        p[i3+1]=y+(Math.random()-.5)*0.08;
+        p[i3+2]=lz+(rz-lz)*bridgeMix+nz;
+      }else if(i<haloStart){
+        const gi=i-(strandCount*2+bridgeCount);
+        const t=gi/Math.max(1,grooveCount-1);
+        const a=t*TWO_PI*turns+(gi%2===0?0:Math.PI);
+        const y=(t-.5)*height+(Math.random()-.5)*0.24;
+        const rr=radius+0.95+Math.sin(t*TWO_PI*turns*0.5)*0.24+(gi%4<2?0.28:-0.18);
         p[i3]=Math.cos(a)*rr;
         p[i3+1]=y;
         p[i3+2]=Math.sin(a)*rr;
-      }else if(i<haloStart){
-        const bi=i-strandCount*2;
-        const t=bi/Math.max(1,bridgeCount-1);
-        const a=t*Math.PI*11.0;
-        const y=(t-.5)*height+(Math.random()-.5)*0.16;
-        const bridgeT=Math.random();
-        const rr=radius*(0.18+bridgeT*0.82);
-        const ba=a+Math.PI*bridgeT;
-        p[i3]=Math.cos(ba)*rr;
-        p[i3+1]=y;
-        p[i3+2]=Math.sin(ba)*rr;
       }else{
         const hi=i-haloStart;
         const remain=Math.max(1,n-haloStart-1);
         const t=hi/remain;
-        const a=t*Math.PI*11.0+Math.random()*0.35;
-        const y=(t-.5)*height+(Math.random()-.5)*0.85;
-        const rr=radius+0.65+Math.random()*0.95;
+        const a=t*TWO_PI*turns+Math.random()*0.42;
+        const y=(t-.5)*height+(Math.random()-.5)*1.15;
+        const rr=radius+1.65+Math.random()*1.7;
         p[i3]=Math.cos(a)*rr;
         p[i3+1]=y;
         p[i3+2]=Math.sin(a)*rr;
@@ -1301,7 +1564,18 @@ class CosmicPortfolio{
     });
 
     this.dom.audioBtn.addEventListener('click',()=>this._toggleAudio());
+    this.dom.ctaExplore.addEventListener('click',()=>{
+      this._stopAutoCycle();
+      this.goTo((this.curState+1)%6);
+    });
+    this.dom.ctaFocus.addEventListener('click',()=>{
+      this._stopAutoCycle();
+      this.goTo(this.curState===4?0:4);
+    });
     this._syncUI(0,true);
+    gsap.set([...this.dom.panels,this.dom.nav,this.dom.audioBtn,this.dom.hint,this.dom.brandBlock,this.dom.chapterCard],{opacity:0,y:18});
+    gsap.set(this.dom.brackets,{opacity:0});
+    gsap.set(this.dom.labels,{opacity:0,y:26,scale:0.985});
   }
 
   _audio(){
@@ -1364,6 +1638,57 @@ class CosmicPortfolio{
     high.start();
     lowLfo.start();
     highLfo.start();
+  }
+
+  _introSequence(){
+    const v=this.views[0];
+    this.camera.position.set(v.pos[0],v.pos[1]-1.2,v.pos[2]+6.5);
+    this.focusDistance=v.focus+4.0;
+    this.transitionPulse=0.85;
+    this.hudPulse=1.1;
+    this.dom.flash.style.opacity='0.85';
+    this._applyTheme(0,true);
+
+    const tl=gsap.timeline({
+      defaults:{ease:'power3.out'},
+      onComplete:()=>{
+        this.introComplete=true;
+        this._scheduleAutoCycle();
+      }
+    });
+
+    tl.to(this.dom.loader,{opacity:0,duration:0.8,ease:'power2.out'},0)
+      .to(this.dom.flash,{opacity:0,duration:1.2,ease:'expo.out'},0)
+      .to(this,{transitionPulse:0.0,duration:1.6,ease:'expo.out'},0)
+      .to(this,{hudPulse:0.0,duration:1.5,ease:'expo.out'},0.08)
+      .to(this.camera.position,{
+        x:v.pos[0],
+        y:v.pos[1],
+        z:v.pos[2],
+        duration:2.2,
+        ease:'expo.out'
+      },0.08)
+      .to(this,{focusDistance:v.focus,duration:2.0,ease:'expo.out'},0.15)
+      .to(this.dom.brackets,{opacity:0.9,duration:0.45,stagger:0.03},0.32)
+      .to([this.dom.brandBlock,this.dom.chapterCard],{opacity:1,y:0,duration:0.7,stagger:0.08},0.45)
+      .to(this.dom.panels,{opacity:1,y:0,duration:0.7,stagger:0.06},0.58)
+      .to([this.dom.nav,this.dom.audioBtn,this.dom.hint],{opacity:1,y:0,duration:0.7,stagger:0.06},0.82)
+      .to(this.dom.labels[0],{opacity:1,y:0,scale:1,duration:0.85},1.0)
+      .call(()=>this._scrambleText(this.dom.labels[0].querySelector('h1'),this.dom.labels[0].querySelector('h1').dataset.text),null,1.06);
+  }
+
+  _scheduleAutoCycle(){
+    if(this.userInterrupted) return;
+    clearTimeout(this.autoTimer);
+    const delay=this.autoDurations[this.curState]||9200;
+    this.autoTimer=setTimeout(()=>{
+      if(!this.animating&&!this.userInterrupted) this.goTo((this.curState+1)%6);
+    },delay);
+  }
+
+  _stopAutoCycle(){
+    this.userInterrupted=true;
+    clearTimeout(this.autoTimer);
   }
 
   _playSweep(){
@@ -1476,6 +1801,7 @@ class CosmicPortfolio{
       onComplete:()=>{
         this.curState=idx;
         this.animating=false;
+        this._scheduleAutoCycle();
       }
     })
     .to(this.camera.position,{
@@ -1551,13 +1877,15 @@ class CosmicPortfolio{
   }
 
   _syncUI(idx,instant){
+    const meta=this.stateMeta[idx];
     document.querySelectorAll('.pill').forEach((p,i)=>p.classList.toggle('active',i===idx));
     this.dom.state.textContent=this.tags[idx];
-    this.dom.sector.textContent=this.stateMeta[idx].sector;
-    this.dom.pattern.textContent=this.stateMeta[idx].pattern;
+    this.dom.sector.textContent=meta.sector;
+    this.dom.pattern.textContent=meta.pattern;
     const focusText=this.views[idx].focus.toFixed(2);
     this.dom.focus.textContent=focusText;
     this._applyTheme(idx,instant);
+    this._syncBrand(meta,instant);
     for(let i=0;i<6;i++){
       const el=document.getElementById('label-'+i);
       const head=el.querySelector('h1');
@@ -1569,6 +1897,30 @@ class CosmicPortfolio{
         gsap.to(el,{opacity:0,y:24,scale:0.985,duration:0.45,ease:'power2.in'});
       }
     }
+  }
+
+  _syncBrand(meta,instant){
+    this.dom.brandModule.textContent=meta.module;
+    this.dom.chapterKicker.textContent=meta.kicker;
+    this.dom.chapterCode.textContent=meta.code;
+    if(instant){
+      this.dom.brandIntro.textContent=meta.intro;
+      this.dom.chapterTitle.textContent=meta.title;
+      this.dom.chapterText.textContent=meta.copy;
+    }else{
+      gsap.to(this.dom.brandIntro,{duration:0.35,opacity:0.18,y:6,ease:'power2.in',onComplete:()=>{
+        this.dom.brandIntro.textContent=meta.intro;
+        gsap.to(this.dom.brandIntro,{duration:0.45,opacity:1,y:0,ease:'power2.out'});
+      }});
+      gsap.to(this.dom.chapterText,{duration:0.28,opacity:0.18,y:6,ease:'power2.in',onComplete:()=>{
+        this.dom.chapterText.textContent=meta.copy;
+        gsap.to(this.dom.chapterText,{duration:0.45,opacity:1,y:0,ease:'power2.out'});
+      }});
+      this._scrambleText(this.dom.chapterTitle,meta.title);
+    }
+    this.dom.chapterTags.innerHTML=meta.tags.map(tag=>`<span class="tag">${tag}</span>`).join('');
+    this.dom.ctaExplore.textContent=meta.sector==='LOOP'?'Restart Sequence':'Enter Sequence';
+    this.dom.ctaFocus.textContent=meta.sector==='BIO'?'Return Origin':'Jump To DNA';
   }
 
   _applyTheme(idx,instant){
@@ -1686,16 +2038,11 @@ class CosmicPortfolio{
 window.addEventListener('DOMContentLoaded',()=>{
   const app=new CosmicPortfolio();
   window.transitionToState=idx=>app.goTo(idx);
-  let auto=setInterval(()=>{
-    if(!app.animating) app.goTo((app.curState+1)%6);
-  },9500);
-  const stop=()=>{
-    clearInterval(auto);
-    document.removeEventListener('click',stop);
-    document.removeEventListener('keydown',stop);
-  };
+  app._introSequence();
+  const stop=()=>app._stopAutoCycle();
   document.addEventListener('click',stop);
   document.addEventListener('keydown',stop);
+  document.addEventListener('pointerdown',stop);
 });
 </script>
 </body>
