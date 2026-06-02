@@ -28,6 +28,7 @@
     color:#fff;
     cursor:crosshair;
     -webkit-font-smoothing:antialiased;
+    transition:background .9s ease;
   }
 
   canvas{display:block}
@@ -93,6 +94,29 @@
   .bracket.bl{bottom:24px;left:24px;border-bottom:1px solid;border-left:1px solid}
   .bracket.br{bottom:24px;right:24px;border-bottom:1px solid;border-right:1px solid}
 
+  .transition-flash{
+    position:absolute;
+    inset:0;
+    opacity:0;
+    background:
+      radial-gradient(circle at 50% 50%,rgba(255,255,255,.16) 0%,rgba(0,240,255,.12) 16%,rgba(74,0,224,.08) 28%,transparent 58%),
+      linear-gradient(180deg,rgba(255,255,255,.04),transparent 26%,transparent 74%,rgba(255,255,255,.04));
+    mix-blend-mode:screen;
+  }
+
+  .transition-wipe{
+    position:absolute;
+    left:-15%;
+    top:0;
+    width:24%;
+    height:100%;
+    opacity:0;
+    transform:skewX(-18deg) translateX(0);
+    background:linear-gradient(90deg,transparent,rgba(0,240,255,.08),rgba(255,255,255,.18),rgba(255,170,0,.08),transparent);
+    filter:blur(10px);
+    mix-blend-mode:screen;
+  }
+
   .panel{
     position:fixed;
     padding:14px 16px;
@@ -105,13 +129,16 @@
     font-size:.48rem;
     color:rgba(255,255,255,.36);
     pointer-events:none;
+    transform-origin:center;
+    transition:border-color .5s ease,color .5s ease,background .5s ease,box-shadow .5s ease;
   }
 
   .panel .value{
     display:inline-block;
     margin-left:.7rem;
-    color:rgba(0,240,255,.78);
+    color:var(--cyan);
     letter-spacing:.18em;
+    transition:color .45s ease;
   }
 
   .telemetry-left{top:26px;left:72px;min-width:260px}
@@ -139,7 +166,8 @@
     color:rgba(255,255,255,.24);
     pointer-events:none;
   }
-  .status-bar .value{color:rgba(0,240,255,.74)}
+  .status-bar .value{color:var(--cyan);transition:color .45s ease}
+  .status-bar{transition:border-color .5s ease,color .5s ease,background .5s ease}
 
   .scene-label{
     position:absolute;
@@ -148,6 +176,7 @@
     opacity:0;
     transform:translateY(24px);
     max-width:480px;
+    transform-origin:left bottom;
   }
   .scene-label .eyebrow{
     font-family:'Space Grotesk',sans-serif;
@@ -157,6 +186,7 @@
     text-transform:uppercase;
     color:rgba(0,240,255,.5);
     margin-bottom:.55rem;
+    transition:color .45s ease;
   }
   .scene-label h1{
     font-family:'Space Grotesk',sans-serif;
@@ -176,6 +206,7 @@
     height:1px;
     margin:.9rem 0;
     background:linear-gradient(90deg,var(--cyan),transparent);
+    transition:background .45s ease;
   }
   .scene-label .desc{
     max-width:420px;
@@ -284,6 +315,8 @@
 <div class="overlay">
   <div class="grid"></div>
   <div class="scanlines"></div>
+  <div class="transition-flash" id="transition-flash"></div>
+  <div class="transition-wipe" id="transition-wipe"></div>
   <div class="bracket tl"></div>
   <div class="bracket tr"></div>
   <div class="bracket bl"></div>
@@ -293,6 +326,7 @@
     <div>FPS <span class="value" id="s-fps">60</span></div>
     <div>PARTICLES <span class="value" id="s-count">102400</span></div>
     <div>STATE <span class="value" id="s-state">00</span></div>
+    <div>SECTOR <span class="value" id="s-sector">ORIGIN</span></div>
     <div>BASS <span class="value" id="s-bass">0.00</span></div>
     <div>MID/HIGH <span class="value" id="s-mid">0.00</span></div>
   </div>
@@ -302,6 +336,7 @@
     <div><span>CURSOR Y</span><span class="value" id="s-my">0.00</span></div>
     <div><span>CURSOR Z</span><span class="value" id="s-mz">0.00</span></div>
     <div><span>CAM SPD</span><span class="value" id="s-cspd">0.00</span></div>
+    <div><span>PATTERN</span><span class="value" id="s-pattern">CORE</span></div>
     <div><span>MODE</span><span class="value" id="s-mode">HOVER</span></div>
   </div>
 
@@ -532,6 +567,7 @@ uniform float u_mid;
 uniform float u_cameraSpeed;
 uniform float u_focus;
 uniform float u_activeState;
+uniform float u_transitionPulse;
 
 attribute vec2 a_ref;
 
@@ -548,6 +584,21 @@ void main(){
   vec3 vel=texture2D(u_velocityTex,a_ref).xyz;
   float radial=length(pos.xz);
   float density=1.0-clamp(radial/18.0,0.0,1.0);
+
+  if(u_activeState>0.5&&u_activeState<1.5){
+    float ringWave=sin(radial*1.75-u_time*2.8+atan(pos.z,pos.x)*5.0);
+    pos.y+=ringWave*0.28*(0.35+1.0-density);
+    pos.xz*=1.0+sin(u_time*1.1+radial*0.4)*0.012;
+  }else if(u_activeState>1.5&&u_activeState<2.5){
+    float neural=sin(u_time*2.3+pos.y*1.2+length(pos.xz)*0.8);
+    vec3 nerveDir=normalize(vec3(pos.x*0.45,sin(pos.y*1.8),pos.z*0.45)+1e-5);
+    pos+=nerveDir*neural*0.18*(0.3+density);
+    pos.x+=sin(u_time*1.4+pos.z*0.65)*0.06;
+  }else if(u_activeState>2.5&&u_activeState<3.5){
+    float facet=sin((pos.x+pos.y+pos.z)*1.25+u_time*1.8);
+    pos+=sign(pos+0.001)*facet*0.08;
+    pos*=1.0+sin(u_time*1.1+radial*0.3)*0.015;
+  }
 
   pos.y+=sin(u_time*1.4+radial*0.55)*u_bass*0.18*density;
   pos+=normalize(vec3(snoise(pos*0.14+u_time*0.3),snoise(pos*0.19-u_time*0.2),snoise(pos*0.17+4.0))+1e-5)*u_mid*0.05*(1.0-density);
@@ -569,7 +620,7 @@ void main(){
 
   float outerScale=mix(2.0,6.4,1.0-density);
   float starScale=mix(1.0,0.62,density);
-  float motionScale=1.0+min(v_speed*0.6+u_cameraSpeed*1.1,2.4);
+  float motionScale=1.0+min(v_speed*0.6+u_cameraSpeed*1.1+u_transitionPulse*1.25,2.7);
   float pointSize=(115.0/max(v_depth,1.0))*outerScale*starScale*motionScale;
   gl_PointSize=clamp(pointSize,.8,12.0);
 }
@@ -582,6 +633,7 @@ uniform float u_bass;
 uniform float u_mid;
 uniform float u_opacityMultiplier;
 uniform float u_activeState;
+uniform float u_transitionPulse;
 
 varying vec3 v_worldPos;
 varying vec3 v_velocity;
@@ -630,16 +682,17 @@ void main(){
   color=mix(color,cyan,smoothstep(0.65,1.0,coreMask));
   color=mix(color,gold,pow(coreMask,2.0)*(0.42+u_bass*0.65));
   color=mix(color,stateTint(u_activeState),0.35);
-  color=mix(color,cyan,clamp(v_speed*0.35,0.0,0.25));
+  color=mix(color,cyan,clamp(v_speed*0.35+u_transitionPulse*0.22,0.0,0.42));
+  color=mix(color,gold,u_transitionPulse*0.18*(0.4+coreMask));
 
-  float denseHeat=pow(coreMask,2.8)*(1.4+u_bass*2.2);
+  float denseHeat=pow(coreMask,2.8)*(1.4+u_bass*2.2+u_transitionPulse*1.8);
   float dustScatter=(0.18+0.22*n+u_mid*0.1)*(0.45+dustMask*0.9);
   float intensity=mix(dustScatter,denseHeat,coreMask);
-  intensity*=0.85+sin(u_time*0.7+v_worldPos.x*0.6+v_worldPos.z*0.45)*0.08;
+  intensity*=0.85+sin(u_time*0.7+v_worldPos.x*0.6+v_worldPos.z*0.45)*0.08+u_transitionPulse*0.22;
 
   float nearFade=smoothstep(1.0,4.0,v_depth);
   float farFade=1.0-smoothstep(48.0,80.0,v_depth);
-  float alpha=soft*intensity*nearFade*farFade*u_opacityMultiplier;
+  float alpha=soft*intensity*nearFade*farFade*u_opacityMultiplier*(1.0+u_transitionPulse*0.22);
   if(alpha<0.003) discard;
 
   gl_FragColor=vec4(color*intensity,alpha);
@@ -683,7 +736,8 @@ const lensPassShader={
 const finalPassShader={
   uniforms:{
     tDiffuse:{value:null},
-    u_vignette:{value:0.62}
+    u_vignette:{value:0.62},
+    u_flash:{value:0}
   },
   vertexShader:`
     varying vec2 vUv;
@@ -692,12 +746,15 @@ const finalPassShader={
   fragmentShader:`
     uniform sampler2D tDiffuse;
     uniform float u_vignette;
+    uniform float u_flash;
     varying vec2 vUv;
     void main(){
       vec2 uv=vUv;
       vec2 d=uv-0.5;
       float vignette=1.0-dot(d,d)*u_vignette*1.6;
+      float flash=exp(-dot(d,d)*8.0)*u_flash;
       vec3 color=texture2D(tDiffuse,uv).rgb*vignette;
+      color+=vec3(flash*0.85,flash*0.92,flash)*0.65;
       gl_FragColor=vec4(color,1.0);
     }
   `
@@ -721,6 +778,8 @@ class CosmicPortfolio{
     this.audioBass=0;
     this.audioMid=0;
     this.cameraVelocity=0;
+    this.transitionPulse=0;
+    this.hudPulse=0;
     this.cameraPrev=new THREE.Vector3();
     this.focusDistance=18;
     this.clock=new THREE.Clock();
@@ -730,13 +789,21 @@ class CosmicPortfolio{
     this.views=[
       {pos:[0,3.4,18],look:[0,0,0],focus:16.5,attractor:[0,0,0]},
       {pos:[0,2.6,28],look:[0,0,0],focus:21.5,attractor:[0,0,0]},
-      {pos:[8,4.4,17],look:[0,0,0],focus:14.5,attractor:[2.5,1.0,0]},
-      {pos:[0,3.2,22],look:[0,0,0],focus:17.5,attractor:[0,0,0]},
-      {pos:[9,4.0,15],look:[0,0,0],focus:13.5,attractor:[0,4.0,0]},
+      {pos:[9.8,5.1,15.6],look:[0,0.3,0],focus:13.2,attractor:[0,1.2,0]},
+      {pos:[-5.2,5.6,20.6],look:[0,0.2,0],focus:15.6,attractor:[0,0,0]},
+      {pos:[10.4,3.4,13.8],look:[0,0.8,0],focus:12.8,attractor:[0,4.2,0]},
       {pos:[0,4.8,23],look:[0,0,0],focus:18.5,attractor:[0,0,0]}
     ];
     this.tags=['00','01','02','03','04','05'];
     this.stateTitles=['NEBULA ENGINE','COMPUTE GRID','NEURAL BRAIN','WEB3 MATRIX','DNA HELIX','COSMIC LOOP'];
+    this.stateMeta=[
+      {sector:'ORIGIN',pattern:'CORE',accent:'#00f0ff',line:'rgba(0,240,255,.16)',panel:'linear-gradient(180deg,rgba(10,16,28,.65),rgba(7,12,21,.28))',bg:'radial-gradient(circle at 50% 45%,#07111f 0%,#040812 38%,#02050a 100%)'},
+      {sector:'INFRA',pattern:'RIPPLE',accent:'#7cf8ff',line:'rgba(124,248,255,.18)',panel:'linear-gradient(180deg,rgba(8,20,28,.64),rgba(6,13,18,.28))',bg:'radial-gradient(circle at 50% 45%,#04141d 0%,#061019 38%,#02050a 100%)'},
+      {sector:'INTEL',pattern:'SYNAPSE',accent:'#a76cff',line:'rgba(167,108,255,.18)',panel:'linear-gradient(180deg,rgba(20,12,36,.66),rgba(10,8,22,.28))',bg:'radial-gradient(circle at 50% 45%,#130b22 0%,#090713 40%,#02050a 100%)'},
+      {sector:'CHAIN',pattern:'LATTICE',accent:'#79d8ff',line:'rgba(121,216,255,.18)',panel:'linear-gradient(180deg,rgba(8,16,36,.66),rgba(6,10,18,.28))',bg:'radial-gradient(circle at 50% 45%,#071326 0%,#050a14 42%,#02050a 100%)'},
+      {sector:'BIO',pattern:'HELIX',accent:'#ff54b3',line:'rgba(255,84,179,.18)',panel:'linear-gradient(180deg,rgba(30,10,26,.66),rgba(15,7,18,.28))',bg:'radial-gradient(circle at 50% 45%,#1a0a1a 0%,#0c0712 42%,#02050a 100%)'},
+      {sector:'LOOP',pattern:'RETURN',accent:'#ffb24d',line:'rgba(255,178,77,.18)',panel:'linear-gradient(180deg,rgba(28,16,8,.66),rgba(15,10,7,.28))',bg:'radial-gradient(circle at 50% 45%,#1f1208 0%,#100810 42%,#02050a 100%)'}
+    ];
     this._cacheDom();
     this._progress(4);
     this._renderer();
@@ -763,6 +830,7 @@ class CosmicPortfolio{
       loader:document.getElementById('loader'),
       bar:document.getElementById('bar-inner'),
       state:document.getElementById('s-state'),
+      sector:document.getElementById('s-sector'),
       fps:document.getElementById('s-fps'),
       count:document.getElementById('s-count'),
       bass:document.getElementById('s-bass'),
@@ -771,10 +839,16 @@ class CosmicPortfolio{
       my:document.getElementById('s-my'),
       mz:document.getElementById('s-mz'),
       cspd:document.getElementById('s-cspd'),
+      pattern:document.getElementById('s-pattern'),
       mode:document.getElementById('s-mode'),
       ray:document.getElementById('s-ray'),
       focus:document.getElementById('s-focus'),
-      audioBtn:document.getElementById('audio-btn')
+      audioBtn:document.getElementById('audio-btn'),
+      flash:document.getElementById('transition-flash'),
+      wipe:document.getElementById('transition-wipe'),
+      panels:Array.from(document.querySelectorAll('.panel,.status-bar')),
+      brackets:Array.from(document.querySelectorAll('.bracket')),
+      pills:Array.from(document.querySelectorAll('.pill'))
     };
     this.dom.count.textContent=String(this.count);
   }
@@ -931,14 +1005,36 @@ class CosmicPortfolio{
     const p=new Float32Array(n*3);
     for(let i=0;i<n;i++){
       const i3=i*3;
+      const mode=Math.random();
+      const side=Math.random()<0.5?-1:1;
+
+      if(mode<0.14){
+        const ringT=Math.random()*TWO_PI;
+        const ringR=1.2+Math.random()*2.3;
+        p[i3]=Math.cos(ringT)*ringR*0.6;
+        p[i3+1]=(Math.random()-0.5)*2.8;
+        p[i3+2]=Math.sin(ringT)*ringR*1.6;
+        continue;
+      }
+
       const th=Math.random()*TWO_PI;
       const ph=Math.acos(2*Math.random()-1);
-      const base=6.2;
-      const deform=1+0.28*Math.sin(th*6)*Math.cos(ph*4)+0.22*Math.sin(th*12+ph*8)+0.08*Math.cos(th*18-ph*6);
-      const r=base*deform;
-      p[i3]=r*Math.sin(ph)*Math.cos(th);
-      p[i3+1]=r*Math.sin(ph)*Math.sin(th)*0.82;
-      p[i3+2]=r*Math.cos(ph);
+      const shellBias=mode<0.66?0.82+Math.random()*0.32:0.38+Math.random()*0.4;
+      const base=4.8+Math.random()*1.55;
+      const fold=1
+        +0.24*Math.sin(th*6.0)*Math.cos(ph*4.0)
+        +0.14*Math.sin(th*13.0+ph*8.0)
+        +0.08*Math.cos(th*20.0-ph*7.0);
+      const r=base*fold*shellBias;
+      const localX=r*Math.sin(ph)*Math.cos(th);
+      const localY=r*Math.sin(ph)*Math.sin(th)*0.84;
+      const localZ=r*Math.cos(ph)*1.14;
+      const hemi=side*(2.15+0.26*Math.cos(ph*3.0));
+      const fissure=(0.82+0.48*Math.abs(Math.sin(ph*1.2)))*side;
+      const ventricle=mode>0.82?(Math.random()-0.5)*1.2:0.0;
+      p[i3]=hemi+localX*0.74-fissure*0.52+ventricle;
+      p[i3+1]=localY+(Math.random()-0.5)*0.18;
+      p[i3+2]=localZ+(Math.random()-0.5)*0.22;
     }
     return p;
   }
@@ -946,19 +1042,55 @@ class CosmicPortfolio{
   _genCrystal(n){
     const p=new Float32Array(n*3);
     const grid=Math.ceil(Math.cbrt(n));
-    const spacing=1.52;
+    const spacing=1.44;
     const offset=(grid-1)*spacing*0.5;
+    const mid=Math.floor(grid*0.5);
     let idx=0;
     for(let x=0;x<grid&&idx<n;x++){
       for(let y=0;y<grid&&idx<n;y++){
         for(let z=0;z<grid&&idx<n;z++){
+          const onShell=x===0||y===0||z===0||x===grid-1||y===grid-1||z===grid-1;
+          const onAxis=x===mid||y===mid||z===mid;
+          const onDiagonal=Math.abs(x-y)<=1||Math.abs(y-z)<=1||Math.abs(x-z)<=1;
+          const hollow=Math.abs(x-mid)<grid*0.16&&Math.abs(y-mid)<grid*0.16&&Math.abs(z-mid)<grid*0.16;
+          if(hollow) continue;
+          if(!onShell&&!onAxis&&!onDiagonal&&Math.random()<0.82) continue;
           const i3=idx*3;
-          p[i3]=x*spacing-offset+(Math.random()-.5)*0.1;
-          p[i3+1]=y*spacing-offset+(Math.random()-.5)*0.1;
-          p[i3+2]=z*spacing-offset+(Math.random()-.5)*0.1;
+          const px=x*spacing-offset;
+          const py=y*spacing-offset;
+          const pz=z*spacing-offset;
+          const radius=Math.sqrt(px*px+py*py+pz*pz);
+          const faceted=1.0+Math.sin((px+py+pz)*0.55)*0.035;
+          const spike=onAxis?1.08:1.0;
+          p[i3]=px*faceted*spike+(Math.random()-.5)*0.06;
+          p[i3+1]=py*faceted*spike+(Math.random()-.5)*0.06;
+          p[i3+2]=pz*faceted*spike+(Math.random()-.5)*0.06+Math.sin(radius*0.45)*0.05;
           idx++;
         }
       }
+    }
+    while(idx<n){
+      const i3=idx*3;
+      const branch=Math.random();
+      const r=(grid*spacing)*0.33;
+      if(branch<0.5){
+        const line=Math.random()*2.0-1.0;
+        const arm=Math.floor(Math.random()*3);
+        if(arm===0){p[i3]=line*r;p[i3+1]=(Math.random()-.5)*1.4;p[i3+2]=(Math.random()-.5)*1.4;}
+        if(arm===1){p[i3]=(Math.random()-.5)*1.4;p[i3+1]=line*r;p[i3+2]=(Math.random()-.5)*1.4;}
+        if(arm===2){p[i3]=(Math.random()-.5)*1.4;p[i3+1]=(Math.random()-.5)*1.4;p[i3+2]=line*r;}
+      }else{
+        const face=Math.floor(Math.random()*6);
+        const a=(Math.random()-0.5)*r*2.0;
+        const b=(Math.random()-0.5)*r*2.0;
+        if(face===0){p[i3]= r;p[i3+1]=a;p[i3+2]=b;}
+        if(face===1){p[i3]=-r;p[i3+1]=a;p[i3+2]=b;}
+        if(face===2){p[i3]=a;p[i3+1]= r;p[i3+2]=b;}
+        if(face===3){p[i3]=a;p[i3+1]=-r;p[i3+2]=b;}
+        if(face===4){p[i3]=a;p[i3+1]=b;p[i3+2]= r;}
+        if(face===5){p[i3]=a;p[i3+1]=b;p[i3+2]=-r;}
+      }
+      idx++;
     }
     return p;
   }
@@ -966,26 +1098,46 @@ class CosmicPortfolio{
   _genHelix(n){
     const p=new Float32Array(n*3);
     const half=Math.floor(n/2);
-    const height=26;
-    const radius=4.7;
+    const strandCount=Math.floor(n*0.38);
+    const bridgeCount=Math.floor(n*0.34);
+    const haloStart=strandCount*2+bridgeCount;
+    const height=28;
+    const radius=4.75;
     for(let i=0;i<n;i++){
       const i3=i*3;
-      const strand=i<half?0:1;
-      const li=i<half?i:i-half;
-      const t=li/half;
-      const a=t*Math.PI*10+strand*Math.PI;
-      const y=(t-.5)*height;
-      const rr=radius+(Math.random()-.5)*0.16;
-      if(Math.random()<0.11){
-        const bt=Math.random();
-        const ba=a+Math.PI*bt;
-        p[i3]=Math.cos(ba)*rr*bt;
-        p[i3+2]=Math.sin(ba)*rr*bt;
-      }else{
+      if(i<strandCount*2){
+        const strand=i<strandCount?0:1;
+        const li=i<strandCount?i:i-strandCount;
+        const t=li/Math.max(1,strandCount-1);
+        const turns=11.0;
+        const a=t*Math.PI*turns+strand*Math.PI;
+        const y=(t-.5)*height;
+        const rr=radius+Math.sin(t*18.0)*0.12+(Math.random()-.5)*0.08;
         p[i3]=Math.cos(a)*rr;
+        p[i3+1]=y;
+        p[i3+2]=Math.sin(a)*rr;
+      }else if(i<haloStart){
+        const bi=i-strandCount*2;
+        const t=bi/Math.max(1,bridgeCount-1);
+        const a=t*Math.PI*11.0;
+        const y=(t-.5)*height+(Math.random()-.5)*0.16;
+        const bridgeT=Math.random();
+        const rr=radius*(0.18+bridgeT*0.82);
+        const ba=a+Math.PI*bridgeT;
+        p[i3]=Math.cos(ba)*rr;
+        p[i3+1]=y;
+        p[i3+2]=Math.sin(ba)*rr;
+      }else{
+        const hi=i-haloStart;
+        const remain=Math.max(1,n-haloStart-1);
+        const t=hi/remain;
+        const a=t*Math.PI*11.0+Math.random()*0.35;
+        const y=(t-.5)*height+(Math.random()-.5)*0.85;
+        const rr=radius+0.65+Math.random()*0.95;
+        p[i3]=Math.cos(a)*rr;
+        p[i3+1]=y;
         p[i3+2]=Math.sin(a)*rr;
       }
-      p[i3+1]=y;
     }
     return p;
   }
@@ -1066,7 +1218,8 @@ class CosmicPortfolio{
       u_cameraSpeed:{value:0},
       u_focus:{value:this.focusDistance},
       u_activeState:{value:0},
-      u_opacityMultiplier:{value:0.74}
+      u_opacityMultiplier:{value:0.74},
+      u_transitionPulse:{value:0}
     };
 
     this.material=new THREE.ShaderMaterial({
@@ -1254,6 +1407,8 @@ class CosmicPortfolio{
     this.velocityUniforms.u_target.value=this.stateTextures[idx];
     this.velocityUniforms.u_attractor.value.set(...this.views[idx].attractor);
     this.renderUniforms.u_activeState.value=idx;
+    this.transitionPulse=0;
+    this.hudPulse=1;
 
     gsap.killTweensOf(this.velocityUniforms.u_transition);
     gsap.fromTo(this.velocityUniforms.u_transition,{value:0.0},{
@@ -1281,17 +1436,62 @@ class CosmicPortfolio{
     });
 
     const view=this.views[idx];
-    gsap.to(this.camera.position,{
-      x:view.pos[0],
-      y:view.pos[1],
-      z:view.pos[2],
-      duration:3.2,
-      ease:'expo.inOut',
+    const from=this.camera.position.clone();
+    const to=new THREE.Vector3(...view.pos);
+    const travel=to.clone().sub(from);
+    const overshoot=to.clone().add(travel.clone().normalize().multiplyScalar(Math.min(2.4,travel.length()*0.12)));
+
+    gsap.fromTo(this,{transitionPulse:0},{
+      transitionPulse:1,
+      duration:0.52,
+      ease:'power2.out',
+      yoyo:true,
+      repeat:1
+    });
+
+    gsap.fromTo(this,{hudPulse:1.1},{
+      hudPulse:0,
+      duration:1.2,
+      ease:'expo.out'
+    });
+
+    gsap.fromTo(this.dom.flash,{opacity:0},{
+      opacity:0.9,
+      duration:0.18,
+      ease:'power2.out',
+      yoyo:true,
+      repeat:1
+    });
+
+    gsap.fromTo(this.dom.wipe,{opacity:0,xPercent:-10},{
+      opacity:0.95,
+      xPercent:420,
+      duration:0.95,
+      ease:'power3.out',
+      onStart:()=>gsap.set(this.dom.wipe,{opacity:0.95})
+    });
+    gsap.to(this.dom.wipe,{opacity:0,duration:0.28,delay:0.72,ease:'power2.out'});
+
+    gsap.timeline({
       onComplete:()=>{
         this.curState=idx;
         this.animating=false;
       }
-    });
+    })
+    .to(this.camera.position,{
+      x:overshoot.x,
+      y:overshoot.y,
+      z:overshoot.z,
+      duration:1.55,
+      ease:'expo.out'
+    })
+    .to(this.camera.position,{
+      x:view.pos[0],
+      y:view.pos[1],
+      z:view.pos[2],
+      duration:1.75,
+      ease:'expo.inOut'
+    },"<0.92");
 
     gsap.to(this,{
       focusDistance:view.focus,
@@ -1299,8 +1499,32 @@ class CosmicPortfolio{
       ease:'expo.inOut'
     });
 
+    this._pulseHud();
     this._syncUI(idx,false);
     this._playSweep();
+  }
+
+  _pulseHud(){
+    gsap.fromTo(this.dom.panels,
+      {opacity:0.92,boxShadow:'0 0 0 rgba(0,240,255,0)'},
+      {
+        opacity:1,
+        duration:0.26,
+        ease:'power2.out',
+        boxShadow:'0 0 26px rgba(0,240,255,0.18)',
+        yoyo:true,
+        repeat:1,
+        stagger:0.03
+      }
+    );
+    gsap.fromTo(this.dom.brackets,
+      {opacity:0.45},
+      {opacity:1,duration:0.22,ease:'power2.out',yoyo:true,repeat:1,stagger:0.02}
+    );
+    gsap.fromTo(this.dom.pills,
+      {scaleY:1},
+      {scaleY:1.28,duration:0.18,ease:'power2.out',yoyo:true,repeat:1,stagger:0.012}
+    );
   }
 
   _scrambleText(el,target){
@@ -1329,19 +1553,40 @@ class CosmicPortfolio{
   _syncUI(idx,instant){
     document.querySelectorAll('.pill').forEach((p,i)=>p.classList.toggle('active',i===idx));
     this.dom.state.textContent=this.tags[idx];
+    this.dom.sector.textContent=this.stateMeta[idx].sector;
+    this.dom.pattern.textContent=this.stateMeta[idx].pattern;
     const focusText=this.views[idx].focus.toFixed(2);
     this.dom.focus.textContent=focusText;
+    this._applyTheme(idx,instant);
     for(let i=0;i<6;i++){
       const el=document.getElementById('label-'+i);
       const head=el.querySelector('h1');
       if(i===idx){
-        gsap.to(el,{opacity:1,y:0,duration:instant?0:0.9,ease:'power3.out',delay:instant?0:0.25});
+        gsap.to(el,{opacity:1,y:0,scale:1,duration:instant?0:0.9,ease:'power3.out',delay:instant?0:0.25});
         if(!instant) this._scrambleText(head,head.dataset.text);
         else head.textContent=head.dataset.text;
       }else{
-        gsap.to(el,{opacity:0,y:24,duration:0.45,ease:'power2.in'});
+        gsap.to(el,{opacity:0,y:24,scale:0.985,duration:0.45,ease:'power2.in'});
       }
     }
+  }
+
+  _applyTheme(idx,instant){
+    const theme=this.stateMeta[idx];
+    const root=document.documentElement;
+    if(instant){
+      root.style.setProperty('--cyan',theme.accent);
+      root.style.setProperty('--line',theme.line);
+      document.body.style.background=theme.bg;
+    }else{
+      gsap.to(root,{duration:0.6,ease:'power2.out','--cyan':theme.accent,'--line':theme.line});
+      gsap.to(document.body,{duration:0.7,ease:'power2.out',background:theme.bg});
+    }
+    this.dom.panels.forEach(el=>{
+      el.style.borderColor=theme.line;
+      el.style.background=theme.panel;
+    });
+    this.dom.brackets.forEach(el=>el.style.borderColor=theme.line);
   }
 
   _updateTelemetry(){
@@ -1353,6 +1598,7 @@ class CosmicPortfolio{
     this.dom.cspd.textContent=this.cameraVelocity.toFixed(2);
     this.dom.mode.textContent=this.mouseDown?'BLACKHOLE':'HOVER';
     this.dom.ray.textContent=this.mouseDown?'VORTEX':'MAGNETIC';
+    this.dom.flash.style.opacity=Math.max(parseFloat(this.dom.flash.style.opacity||0)*0.9,0).toFixed(3);
   }
 
   _updateCamera(t){
@@ -1409,13 +1655,19 @@ class CosmicPortfolio{
     this.renderUniforms.u_mid.value=this.audioMid;
     this.renderUniforms.u_cameraSpeed.value=Math.min(this.cameraVelocity*0.16,1.8);
     this.renderUniforms.u_focus.value=this.focusDistance;
+    this.renderUniforms.u_transitionPulse.value=this.transitionPulse;
 
     this.lensPass.uniforms.u_time.value=t*1000;
+    this.lensPass.uniforms.u_aberration.value=0.002+this.transitionPulse*0.0035+Math.min(this.cameraVelocity*0.0005,0.0015);
     this.bokehPass.uniforms['focus'].value=this.focusDistance;
+    this.finalPass.uniforms.u_flash.value=this.transitionPulse*0.7;
 
     this.points.rotation.y+=this.curState===0?0.0018+this.audioBass*0.01:0.00045;
     this.bgStars.rotation.y+=0.00005;
     this.bgStars.rotation.x+=0.00002;
+
+    const hudIntensity=1+this.hudPulse*0.08;
+    this.dom.panels.forEach(el=>el.style.transform=`scale(${hudIntensity})`);
 
     this.composer.render(dt);
 
